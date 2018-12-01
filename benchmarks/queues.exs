@@ -1,9 +1,16 @@
 alias Peque.Queue, as: Q
 
-dets_file = "#{System.tmp_dir() || "."}/peque.dets"
+dets_file_A = "#{System.tmp_dir() || "."}/peque_1.dets"
+dets_file_B = "#{System.tmp_dir() || "."}/peque_2.dets"
+
+File.rm(dets_file_A)
+File.rm(dets_file_B)
 
 fast_queue = %Peque.FastQueue{}
-dets_queue = Peque.DetsQueue.new(Peque.DETS, dets_file)
+dets_queue = Peque.DetsQueue.new(Peque.DETS.A, dets_file_A)
+
+{:ok, fast_server_queue} = GenServer.start_link(Peque.QueueServer, %Peque.FastQueue{})
+{:ok, dets_server_queue} = GenServer.start_link(Peque.QueueServer, Peque.DetsQueue.new(Peque.DETS.B, dets_file_B))
 
 message_gen = fn x -> 1..x |> Enum.map(&"message #{&1}") end
 
@@ -33,19 +40,15 @@ end
 
 Benchee.run(
   %{
-    "Fast: add/get/ack N times" => add_get_ack.(fast_queue),
-    "DETS: add/get/ack N times" => add_get_ack.(dets_queue)
+    "Fast: add, get then ack N times" => add_get_ack.(fast_queue),
+    "Fast (GenServer): add, get then ack N times" => add_get_ack.(fast_server_queue),
+    "DETS: add, get then ack N times" => add_get_ack.(dets_queue),
+    "DETS (GenServer): add, get then ack N times" => add_get_ack.(dets_server_queue),
   },
   inputs: %{
     "10000 messages" => message_gen.(10_000),
-    "1000 messages" => message_gen.(1000),
-    "100 messages" => message_gen.(100)
+    "10 messages" => message_gen.(10)
   },
-  after_scenario: fn _ ->
-    :dets.close(dets_queue.dets)
-    File.rm("peque.dets")
-    Peque.DetsQueue.new(Peque.DETS, dets_file)
-  end,
   memory_time: 2,
   formatters: [
     Benchee.Formatters.Console,
