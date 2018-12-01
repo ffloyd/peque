@@ -1,7 +1,7 @@
 defprotocol Peque.Queue do
   @type message :: term()
   @type ack_id :: pos_integer()
-  
+
   @spec add(t(), message()) :: :ok | :error
   def add(queue, message)
 
