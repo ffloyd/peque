@@ -22,7 +22,8 @@ defmodule Peque.MixProject do
 
   defp aliases() do
     [
-      test: "test --no-start" # don't start application in tests
+      # don't start application in tests
+      test: "test --no-start"
     ]
   end
 
