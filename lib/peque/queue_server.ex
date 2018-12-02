@@ -1,13 +1,27 @@
 defmodule Peque.QueueServer do
-  @moduledoc "`GenServer` wrapper around `Peque.Queue`."
+  @moduledoc """
+  `GenServer` for `Peque.Queue` implementations.
+
+  Executes `Peque.Queue.close/1` on `c:GenServer.terminate/2`.
+
+  Requires queue builder as init argument.
+  Also, there are `Peque.Queue` implementations for `t:pid/0` and `t:atom/0`:
+
+      {:ok, pid} = GenServer.start_link(Peque.QueueServer, fn -> %Peque.FastQueue{} end,
+                                        name: Peque.QueueServer)
+
+      {:ok, _} = Peque.Queue.add(pid, "message")
+      {:ok, _, ack_id, message} = Peque.Queue.get(Peque.QueueServer)
+  """
 
   use GenServer
 
   alias Peque.Queue
 
   @impl true
-  def init(queue) do
-    {:ok, queue}
+  @spec init((() -> Queue.t())) :: {:ok, Queue.t()}
+  def init(get_queue) do
+    {:ok, get_queue.()}
   end
 
   @impl true

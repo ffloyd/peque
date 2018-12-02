@@ -1,7 +1,31 @@
 defmodule Peque.FastQueue do
-  @moduledoc "Fast in-memory `Peque.Queue` implementation."
+  @moduledoc """
+  Fast in-memory `Peque.Queue` protocol implementation.
+
+  It uses Erlang's `:queue` for queueing and `Map` as storage for removed, but non-acked messages.
+
+  ## Examples:
+
+  New queue:
+
+      iex> %Peque.FastQueue{}
+      %Peque.FastQueue{active: %{}, next_ack_id: 1, queue: {[], []}}
+      
+  New queue with preconfigured first ack_id:
+
+      iex> %Peque.FastQueue{next_ack_id: 22}
+      %Peque.FastQueue{active: %{}, next_ack_id: 22, queue: {[], []}}
+  """
+
+  alias Peque.Queue
 
   defstruct queue: :queue.new(), active: %{}, next_ack_id: 1
+
+  @type t :: %__MODULE__{
+          queue: :queue.queue(Queue.message()),
+          active: %{optional(Queue.ack_id()) => Queue.message()},
+          next_ack_id: Queue.ack_id()
+        }
 
   defimpl Peque.Queue do
     def add(state = %{queue: q}, message) do

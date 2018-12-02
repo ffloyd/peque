@@ -6,7 +6,7 @@ defmodule Peque.QueueServerTest do
       id: Peque.QueueServer,
       start:
         {GenServer, :start_link,
-         [Peque.QueueServer, %Peque.FastQueue{}, [name: Peque.QueueServer]]}
+         [Peque.QueueServer, fn -> %Peque.FastQueue{} end, [name: Peque.QueueServer]]}
     })
 
     :ok
