@@ -5,24 +5,29 @@ defmodule Peque.Storage do
 
   alias Peque.Queue
 
-  @type record :: {record_id(), Queue.message()}
-  @type record_id :: id() | {Queue.ack_id(), :ack}
-  @type id :: pos_integer()
   @type t :: any()
 
-  @callback insert(t(), record()) :: t()
+  @doc "Append one message to queue."
+  @callback append(t(), Queue.message()) :: t()
 
-  @callback get(t(), record_id()) :: record() | :none
+  @doc "Pop message from queue."
+  @callback pop(t()) :: t()
 
-  @callback delete(t(), record_id()) :: t()
+  @doc "Add ack waiter."
+  @callback add_ack(t(), Queue.ack_id(), Queue.message()) :: t()
 
-  @callback min_id(t()) :: id() | :none
+  @doc "Remove ack waiter."
+  @callback del_ack(t(), Queue.ack_id()) :: t()
 
-  @callback max_id(t()) :: id() | :none
+  @doc "Get next_ack_id counter"
+  @callback next_ack_id(t()) :: Queue.ack_id()
 
-  @callback max_ack_id(t()) :: Queue.ack_id() | :none
+  @doc "Set next_ack_id counter"
+  @callback set_next_ack_id(t(), Queue.ack_id()) :: t()
 
+  @doc "Write all buffers to disk."
   @callback sync(t()) :: t()
 
+  @doc "Close storage. Storage should not be used after closing."
   @callback close(t()) :: :ok
 end
