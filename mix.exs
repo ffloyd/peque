@@ -32,10 +32,11 @@ defmodule Peque.MixProject do
     [
       main: Peque,
       groups_for_modules: [
-        Protocols: [
-          Peque.Queue
+        protocols: [
+          Peque.Queue,
+          Peque.Storage
         ],
-        Queues: [
+        queues: [
           Peque.FastQueue,
           Peque.QueueServer
         ]
