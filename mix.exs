@@ -39,6 +39,9 @@ defmodule Peque.MixProject do
         queues: [
           Peque.FastQueue,
           Peque.QueueServer
+        ],
+        storages: [
+          Peque.DETSStorage
         ]
       ]
     ]
