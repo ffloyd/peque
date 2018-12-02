@@ -70,6 +70,19 @@ defmodule Peque.QueueServer do
   end
 
   @impl true
+  def handle_call(:empty?, _from, queue) do
+    {:reply, Queue.empty?(queue), queue}
+  end
+
+  @impl true
+  def handle_call({:set_next_ack_id, next_ack_id}, _from, queue) do
+    case Queue.set_next_ack_id(queue, next_ack_id) do
+      {:ok, queue} -> {:reply, :ok, queue}
+      :error -> {:reply, :error, queue}
+    end
+  end
+
+  @impl true
   def terminate(_reason, queue) do
     Queue.close(queue)
   end
@@ -111,5 +124,16 @@ defimpl Peque.Queue, for: [PID, Atom] do
 
   def close(pid) do
     GenServer.call(pid, :close)
+  end
+
+  def empty?(pid) do
+    GenServer.call(pid, :empty?)
+  end
+
+  def set_next_ack_id(pid, next_ack_id) do
+    case GenServer.call(pid, {:set_next_ack_id, next_ack_id}) do
+      :ok -> {:ok, pid}
+      :error -> :error
+    end
   end
 end

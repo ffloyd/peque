@@ -65,7 +65,7 @@ defprotocol Peque.Queue do
 
   For storage-based and similar queues writes all buffered data to the storage and syncs it.
 
-  Returns `{:ok, queue}`
+  Returns `{:ok, queue}`.
   """
   @spec sync(t()) :: {:ok, t()}
   def sync(queue)
@@ -79,4 +79,20 @@ defprotocol Peque.Queue do
   """
   @spec close(t()) :: :ok
   def close(queue)
+
+  @doc """
+  Returns `true` if `queue` is empty. `false` otherwise. 
+  """
+  @spec empty?(t()) :: boolean()
+  def empty?(queue)
+
+  @doc """
+  Set next ack_id for empty queue.
+
+  If `queue` isn't empty returns `:error`.
+
+  Otherwise returns `{:ok, queue}`.
+  """
+  @spec set_next_ack_id(t(), ack_id()) :: {:ok, t()} | :error
+  def set_next_ack_id(queue, next_ack_id)
 end

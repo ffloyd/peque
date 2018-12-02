@@ -40,6 +40,19 @@ defmodule Peque.QueueSharedTest do
         test "close/1 when empty", %{queue: q} do
           assert :ok = Q.close(q)
         end
+
+        test "empty?/1", %{queue: q} do
+          assert Q.empty?(q)
+          assert {:ok, q} = Q.add(q, "msg")
+          refute Q.empty?(q)
+        end
+
+        test "set_next_ack_id/2", %{queue: q} do
+          assert {:ok, q} = Q.set_next_ack_id(q, 10)
+          assert {:ok, q} = Q.add(q, "msg")
+          assert {:ok, _, 10, "msg"} = Q.get(q)
+          assert :error = Q.set_next_ack_id(q, 20)
+        end
       end
     end
   end

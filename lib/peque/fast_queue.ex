@@ -10,11 +10,6 @@ defmodule Peque.FastQueue do
 
       iex> %Peque.FastQueue{}
       %Peque.FastQueue{active: %{}, next_ack_id: 1, queue: {[], []}}
-      
-  New queue with preconfigured first ack_id:
-
-      iex> %Peque.FastQueue{next_ack_id: 22}
-      %Peque.FastQueue{active: %{}, next_ack_id: 22, queue: {[], []}}
   """
 
   alias Peque.Queue
@@ -84,6 +79,16 @@ defmodule Peque.FastQueue do
 
     def close(_state) do
       :ok
+    end
+
+    def empty?(%{queue: q, active: active}), do: :queue.is_empty(q) && Enum.empty?(active)
+
+    def set_next_ack_id(state, new_next_ack_id) do
+      if empty?(state) do
+        {:ok, %{state | next_ack_id: new_next_ack_id}}
+      else
+        :error
+      end
     end
   end
 end
