@@ -38,14 +38,6 @@ defmodule Peque.DetsQueue do
     {left_id, right_id}
   end
 
-  def sync(%{dets: dets}) do
-    :ok = :dets.sync(dets)
-  end
-
-  def close(%{dets: dets}) do
-    :ok = :dets.close(dets)
-  end
-
   defimpl Peque.Queue do
     def add(state = %{dets: dets, right_id: id}, message) do
       :ok = :dets.insert(dets, {id, message})
@@ -104,6 +96,18 @@ defmodule Peque.DetsQueue do
         [] ->
           {:not_found, state}
       end
+    end
+
+    def sync(state = %{dets: dets}) do
+      :ok = :dets.sync(dets)
+
+      {:ok, state}
+    end
+
+    def close(%{dets: dets}) do
+      :ok = :dets.close(dets)
+
+      :ok
     end
   end
 end

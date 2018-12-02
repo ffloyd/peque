@@ -53,5 +53,13 @@ defmodule Peque.FastQueue do
           {:not_found, state}
       end
     end
+
+    def sync(state) do
+      {:ok, state}
+    end
+
+    def close(_state) do
+      :ok
+    end
   end
 end

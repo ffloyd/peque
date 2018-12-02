@@ -40,6 +40,25 @@ defmodule Peque.QueueServer do
       {:not_found, queue} -> {:reply, :not_found, queue}
     end
   end
+
+  @impl true
+  def handle_call(:sync, _from, queue) do
+    {:ok, queue} = Queue.sync(queue)
+
+    {:reply, :ok, queue}
+  end
+
+  @impl true
+  def handle_call(:close, _from, queue) do
+    :ok = Queue.close(queue)
+
+    {:reply, :ok, queue, :hibernate}
+  end
+
+  @impl true
+  def terminate(_reason, queue) do
+    Queue.close(queue)
+  end
 end
 
 defimpl Peque.Queue, for: [PID, Atom] do
@@ -68,5 +87,15 @@ defimpl Peque.Queue, for: [PID, Atom] do
       :ok -> {:ok, pid}
       :not_found -> {:not_found, pid}
     end
+  end
+
+  def sync(pid) do
+    :ok = GenServer.call(pid, :sync)
+
+    {:ok, pid}
+  end
+
+  def close(pid) do
+    GenServer.call(pid, :close)
   end
 end
