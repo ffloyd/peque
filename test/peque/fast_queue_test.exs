@@ -3,5 +3,5 @@ defmodule Peque.FastQueueTest do
 
   doctest Peque.FastQueue
 
-  use Peque.QueueSharedTest, queue: %Peque.FastQueue{}
+  use Peque.QueueSharedTest, module: Peque.FastQueue, queue: %Peque.FastQueue{}
 end

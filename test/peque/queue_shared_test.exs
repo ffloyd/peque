@@ -1,17 +1,17 @@
 defmodule Peque.QueueSharedTest do
-  alias Peque.Queue, as: Q
-
-  defmacro __using__(queue: queue) do
+  defmacro __using__(module: module, queue: queue) do
     quote do
       describe "queue behaviour" do
         setup do
           %{queue: unquote(queue)}
         end
 
+        alias unquote(module), as: Q
+
         test "success path: add/2 -> get/1 -> ack/2", %{queue: q} do
           assert {:ok, q} = Q.add(q, "msg")
           assert {:ok, q, ack_id = 1, "msg"} = Q.get(q)
-          assert {:ok, q} = Peque.Queue.ack(q, ack_id)
+          assert {:ok, q} = Q.ack(q, ack_id)
         end
 
         test "success path: add/2 -> get/1 -> reject/2 -> get/1", %{queue: q} do

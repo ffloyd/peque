@@ -1,4 +1,4 @@
-defprotocol Peque.Storage do
+defmodule Peque.Storage do
   @moduledoc """
   Defines API of storage suitable for queue persisting.
   """
@@ -8,28 +8,21 @@ defprotocol Peque.Storage do
   @type record :: {record_id(), Queue.message()}
   @type record_id :: id() | {Queue.ack_id(), :ack}
   @type id :: pos_integer()
+  @type t :: any()
 
-  @spec insert(t(), record()) :: t()
-  def insert(storage, record)
+  @callback insert(t(), record()) :: t()
 
-  @spec get(t(), record_id()) :: record() | :none
-  def get(storage, record_id)
+  @callback get(t(), record_id()) :: record() | :none
 
-  @spec delete(t(), record_id()) :: t()
-  def delete(storage, record_id)
+  @callback delete(t(), record_id()) :: t()
 
-  @spec min_id(t()) :: id() | :none
-  def min_id(storage)
+  @callback min_id(t()) :: id() | :none
 
-  @spec max_id(t()) :: id() | :none
-  def max_id(storage)
+  @callback max_id(t()) :: id() | :none
 
-  @spec max_ack_id(t()) :: Queue.ack_id() | :none
-  def max_ack_id(storage)
+  @callback max_ack_id(t()) :: Queue.ack_id() | :none
 
-  @spec sync(t()) :: t()
-  def sync(storage)
+  @callback sync(t()) :: t()
 
-  @spec close(t()) :: :ok
-  def close(storage)
+  @callback close(t()) :: :ok
 end

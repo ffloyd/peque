@@ -1,20 +1,22 @@
-defprotocol Peque.Queue do
+defmodule Peque.Queue do
   @moduledoc """
-  This protocol describes what is queue.
+  This behaviour describes what is queue.
 
   ## Examples
 
   Adding messages:
 
-      {:ok, q} = Peque.Queue.add(q, "message")
-      {:ok, q} = Peque.Queue.add(q, any: :term)
+      {:ok, q} = Peque.FastQueue.add(q, "message")
+      {:ok, q} = Peque.FastQueue.add(q, any: :term)
       
   Success message path:
 
-      {:ok, q} = Peque.Queue.add(q, "message")
-      {:ok, q, ack_id, "message"} = Peque.Queue.get(q)
-      {:ok, q} = Peque.Queue.ack(q, ack_id)
+      {:ok, q} = Peque.FastQueue.add(q, "message")
+      {:ok, q, ack_id, "message"} = Peque.FastQueue.get(q)
+      {:ok, q} = Peque.FastQueue.ack(q, ack_id)
   """
+
+  @type t :: any()
 
   @typedoc "Any erlang term allowed to be a message"
   @type message :: term()
@@ -27,8 +29,7 @@ defprotocol Peque.Queue do
 
   Returns `{:ok, queue}`.
   """
-  @spec add(t(), message()) :: {:ok, t()}
-  def add(queue, message)
+  @callback add(t(), message()) :: {:ok, t()}
 
   @doc """
   Get message from queue.
@@ -38,8 +39,7 @@ defprotocol Peque.Queue do
 
   `ack_id` is not identifier of the message. It identifies particular `get/1` call in a context of `queue`.
   """
-  @spec get(t()) :: {:ok, t(), ack_id(), message()} | {:empty, t()}
-  def get(queue)
+  @callback get(t()) :: {:ok, t(), ack_id(), message()} | {:empty, t()}
 
   @doc """
   Finalize message by `ack_id`.
@@ -48,8 +48,7 @@ defprotocol Peque.Queue do
   Returns `{:ok, queue}` if unfinalized message with corresponding `ack_id` found.
   Otherwise returns `{:not_found, queue}`.
   """
-  @spec ack(t(), ack_id()) :: {:ok, t()} | {:not_found, t()}
-  def ack(queue, ack_id)
+  @callback ack(t(), ack_id()) :: {:ok, t()} | {:not_found, t()}
 
   @doc """
   Finalize message by `ack_id` and add it to `queue`.
@@ -57,8 +56,7 @@ defprotocol Peque.Queue do
   Returns `{:ok, queue}` if unfinalized message with corresponding `ack_id` found.
   Otherwise returns `{:not_found, queue}`.
   """
-  @spec reject(t(), ack_id()) :: {:ok, t()} | {:not_found, t()}
-  def reject(queue, ack_id)
+  @callback reject(t(), ack_id()) :: {:ok, t()} | {:not_found, t()}
 
   @doc """
   Sync queue data.
@@ -67,8 +65,7 @@ defprotocol Peque.Queue do
 
   Returns `{:ok, queue}`.
   """
-  @spec sync(t()) :: {:ok, t()}
-  def sync(queue)
+  @callback sync(t()) :: {:ok, t()}
 
   @doc """
   Sync and close queue. 
@@ -77,14 +74,12 @@ defprotocol Peque.Queue do
 
   Returns `:ok`.
   """
-  @spec close(t()) :: :ok
-  def close(queue)
+  @callback close(t()) :: :ok
 
   @doc """
   Returns `true` if `queue` is empty. `false` otherwise. 
   """
-  @spec empty?(t()) :: boolean()
-  def empty?(queue)
+  @callback empty?(t()) :: boolean()
 
   @doc """
   Set next ack_id for empty queue.
@@ -93,6 +88,5 @@ defprotocol Peque.Queue do
 
   Otherwise returns `{:ok, queue}`.
   """
-  @spec set_next_ack_id(t(), ack_id()) :: {:ok, t()} | :error
-  def set_next_ack_id(queue, next_ack_id)
+  @callback set_next_ack_id(t(), ack_id()) :: {:ok, t()} | :error
 end

@@ -1,21 +1,21 @@
 defmodule Peque.DETSStorageTest do
   use ExUnit.Case
 
-  alias Peque.Storage
-
   @dets_file "#{System.tmp_dir() || "."}/peque-dets-storage.dets"
 
+  alias Peque.DETSStorage, as: Storage
+
   setup do
-    on_exit fn ->
+    on_exit(fn ->
       File.rm(@dets_file)
-    end
+    end)
 
     :ok
   end
 
   test "works" do
     {:ok, dets} = :dets.open_file(Peque.DETS, file: @dets_file |> String.to_charlist())
-    s = %Peque.DETSStorage{dets: dets}
+    s = %Storage{dets: dets}
 
     s =
       s

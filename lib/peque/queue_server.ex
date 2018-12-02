@@ -5,13 +5,16 @@ defmodule Peque.QueueServer do
   Executes `Peque.Queue.close/1` on `c:GenServer.terminate/2`.
 
   Requires queue builder as init argument.
-  Also, there are `Peque.Queue` implementations for `t:pid/0` and `t:atom/0`:
 
-      {:ok, pid} = GenServer.start_link(Peque.QueueServer, fn -> %Peque.FastQueue{} end,
-                                        name: Peque.QueueServer)
+  ## Examples
 
-      {:ok, _} = Peque.Queue.add(pid, "message")
-      {:ok, _, ack_id, message} = Peque.Queue.get(Peque.QueueServer)
+  Server for `Peque.FastQueue`:
+
+      {:ok, pid} = GenServer.start_link(Peque.QueueServer,
+                                        fn ->
+                                          {Peque.FastQueue, %Peque.FastQueue{}}
+                                        end,
+                                        name: Peque.FastQueueServer)
   """
 
   use GenServer
@@ -19,121 +22,71 @@ defmodule Peque.QueueServer do
   alias Peque.Queue
 
   @impl true
-  @spec init((() -> Queue.t())) :: {:ok, Queue.t()}
+  @spec init((() -> {atom(), Queue.t()})) :: {:ok, Queue.t()}
   def init(get_queue) do
     {:ok, get_queue.()}
   end
 
   @impl true
-  def handle_call({:add, message}, _from, queue) do
-    {:ok, queue} = Queue.add(queue, message)
+  def handle_call({:add, message}, _from, {mod, queue}) do
+    {:ok, queue} = mod.add(queue, message)
 
-    {:reply, :ok, queue}
+    {:reply, :ok, {mod, queue}}
   end
 
   @impl true
-  def handle_call(:get, _from, queue) do
-    case Queue.get(queue) do
-      {:ok, queue, ack_id, message} -> {:reply, {:ok, ack_id, message}, queue}
-      {:empty, queue} -> {:reply, :empty, queue}
+  def handle_call(:get, _from, {mod, queue}) do
+    case mod.get(queue) do
+      {:ok, queue, ack_id, message} -> {:reply, {:ok, ack_id, message}, {mod, queue}}
+      {:empty, queue} -> {:reply, :empty, {mod, queue}}
     end
   end
 
   @impl true
-  def handle_call({:ack, ack_id}, _from, queue) do
-    case Queue.ack(queue, ack_id) do
-      {:ok, queue} -> {:reply, :ok, queue}
-      {:not_found, queue} -> {:reply, :not_found, queue}
+  def handle_call({:ack, ack_id}, _from, {mod, queue}) do
+    case mod.ack(queue, ack_id) do
+      {:ok, queue} -> {:reply, :ok, {mod, queue}}
+      {:not_found, queue} -> {:reply, :not_found, {mod, queue}}
     end
   end
 
   @impl true
-  def handle_call({:reject, ack_id}, _from, queue) do
-    case Queue.reject(queue, ack_id) do
-      {:ok, queue} -> {:reply, :ok, queue}
-      {:not_found, queue} -> {:reply, :not_found, queue}
+  def handle_call({:reject, ack_id}, _from, {mod, queue}) do
+    case mod.reject(queue, ack_id) do
+      {:ok, queue} -> {:reply, :ok, {mod, queue}}
+      {:not_found, queue} -> {:reply, :not_found, {mod, queue}}
     end
   end
 
   @impl true
-  def handle_call(:sync, _from, queue) do
-    {:ok, queue} = Queue.sync(queue)
+  def handle_call(:sync, _from, {mod, queue}) do
+    {:ok, queue} = mod.sync(queue)
 
-    {:reply, :ok, queue}
+    {:reply, :ok, {mod, queue}}
   end
 
   @impl true
-  def handle_call(:close, _from, queue) do
-    :ok = Queue.close(queue)
+  def handle_call(:close, _from, {mod, queue}) do
+    :ok = mod.close(queue)
 
-    {:reply, :ok, queue, :hibernate}
+    {:reply, :ok, {mod, queue}, :hibernate}
   end
 
   @impl true
-  def handle_call(:empty?, _from, queue) do
-    {:reply, Queue.empty?(queue), queue}
+  def handle_call(:empty?, _from, {mod, queue}) do
+    {:reply, mod.empty?(queue), {mod, queue}}
   end
 
   @impl true
-  def handle_call({:set_next_ack_id, next_ack_id}, _from, queue) do
-    case Queue.set_next_ack_id(queue, next_ack_id) do
-      {:ok, queue} -> {:reply, :ok, queue}
-      :error -> {:reply, :error, queue}
+  def handle_call({:set_next_ack_id, next_ack_id}, _from, {mod, queue}) do
+    case mod.set_next_ack_id(queue, next_ack_id) do
+      {:ok, queue} -> {:reply, :ok, {mod, queue}}
+      :error -> {:reply, :error, {mod, queue}}
     end
   end
 
   @impl true
-  def terminate(_reason, queue) do
-    Queue.close(queue)
-  end
-end
-
-defimpl Peque.Queue, for: [PID, Atom] do
-  def add(pid, message) do
-    :ok = GenServer.call(pid, {:add, message})
-
-    {:ok, pid}
-  end
-
-  def get(pid) do
-    case GenServer.call(pid, :get) do
-      {:ok, ack_id, message} -> {:ok, pid, ack_id, message}
-      :empty -> {:empty, pid}
-    end
-  end
-
-  def ack(pid, ack_id) do
-    case GenServer.call(pid, {:ack, ack_id}) do
-      :ok -> {:ok, pid}
-      :not_found -> {:not_found, pid}
-    end
-  end
-
-  def reject(pid, ack_id) do
-    case GenServer.call(pid, {:reject, ack_id}) do
-      :ok -> {:ok, pid}
-      :not_found -> {:not_found, pid}
-    end
-  end
-
-  def sync(pid) do
-    :ok = GenServer.call(pid, :sync)
-
-    {:ok, pid}
-  end
-
-  def close(pid) do
-    GenServer.call(pid, :close)
-  end
-
-  def empty?(pid) do
-    GenServer.call(pid, :empty?)
-  end
-
-  def set_next_ack_id(pid, next_ack_id) do
-    case GenServer.call(pid, {:set_next_ack_id, next_ack_id}) do
-      :ok -> {:ok, pid}
-      :error -> :error
-    end
+  def terminate(_reason, {mod, queue}) do
+    mod.close(queue)
   end
 end

@@ -1,33 +1,28 @@
-alias Peque.Queue, as: Q
+fast_queue = {Peque.FastQueue, %Peque.FastQueue{}}
 
-dets_file = "#{System.tmp_dir() || "."}/peque.dets"
-
-File.rm(dets_file)
-
-fast_queue = %Peque.FastQueue{}
-
-{:ok, fast_server_queue} = GenServer.start_link(Peque.QueueServer, %Peque.FastQueue{})
+{:ok, pid} = GenServer.start_link(Peque.QueueServer, fn -> fast_queue end)
+fast_server_queue = {Peque.QueueClient, pid}
 
 message_gen = fn x -> 1..x |> Enum.map(&"message #{&1}") end
 
-add_get_ack = fn q ->
+add_get_ack = fn {mod, q} ->
   fn messages ->
     q =
       Enum.reduce(messages, q, fn msg, q ->
-        {:ok, q} = Q.add(q, msg)
+        {:ok, q} = mod.add(q, msg)
 
         q
       end)
 
     {q, ack_ids} =
       Enum.reduce(messages, {q, []}, fn _, {q, ack_ids} ->
-        {:ok, q, ack_id, _} = Q.get(q)
+        {:ok, q, ack_id, _} = mod.get(q)
 
         {q, [ack_id | ack_ids]}
       end)
 
     Enum.reduce(ack_ids, q, fn ack_id, q ->
-      {:ok, q} = Q.ack(q, ack_id)
+      {:ok, q} = mod.ack(q, ack_id)
 
       q
     end)
