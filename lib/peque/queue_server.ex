@@ -21,20 +21,17 @@ defmodule Peque.QueueServer do
 
   alias Peque.Queue
 
-  @impl true
   @spec init((() -> {atom(), Queue.t()})) :: {:ok, Queue.t()}
   def init(get_queue) do
     {:ok, get_queue.()}
   end
 
-  @impl true
   def handle_call({:add, message}, _from, {mod, queue}) do
     {:ok, queue} = mod.add(queue, message)
 
     {:reply, :ok, {mod, queue}}
   end
 
-  @impl true
   def handle_call(:get, _from, {mod, queue}) do
     case mod.get(queue) do
       {:ok, queue, ack_id, message} -> {:reply, {:ok, ack_id, message}, {mod, queue}}
@@ -42,7 +39,6 @@ defmodule Peque.QueueServer do
     end
   end
 
-  @impl true
   def handle_call({:ack, ack_id}, _from, {mod, queue}) do
     case mod.ack(queue, ack_id) do
       {:ok, queue} -> {:reply, :ok, {mod, queue}}
@@ -50,7 +46,6 @@ defmodule Peque.QueueServer do
     end
   end
 
-  @impl true
   def handle_call({:reject, ack_id}, _from, {mod, queue}) do
     case mod.reject(queue, ack_id) do
       {:ok, queue} -> {:reply, :ok, {mod, queue}}
@@ -58,26 +53,22 @@ defmodule Peque.QueueServer do
     end
   end
 
-  @impl true
   def handle_call(:sync, _from, {mod, queue}) do
     {:ok, queue} = mod.sync(queue)
 
     {:reply, :ok, {mod, queue}}
   end
 
-  @impl true
   def handle_call(:close, _from, {mod, queue}) do
     :ok = mod.close(queue)
 
     {:reply, :ok, {mod, queue}, :hibernate}
   end
 
-  @impl true
   def handle_call(:empty?, _from, {mod, queue}) do
     {:reply, mod.empty?(queue), {mod, queue}}
   end
 
-  @impl true
   def handle_call({:set_next_ack_id, next_ack_id}, _from, {mod, queue}) do
     case mod.set_next_ack_id(queue, next_ack_id) do
       {:ok, queue} -> {:reply, :ok, {mod, queue}}
@@ -85,7 +76,6 @@ defmodule Peque.QueueServer do
     end
   end
 
-  @impl true
   def terminate(_reason, {mod, queue}) do
     mod.close(queue)
   end

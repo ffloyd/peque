@@ -20,7 +20,7 @@ defmodule Peque.DETSStorage do
     {min_id, max_id} =
       dets
       |> all_ids()
-      |> Enum.min_max(fn -> {0, 0} end)
+      |> Enum.min_max(fn -> {1, 0} end)
 
     max_ack_id =
       dets
@@ -44,9 +44,6 @@ defmodule Peque.DETSStorage do
 
     %{s | max_id: max_id + 1}
   end
-
-  @impl true
-  def pop(s = %{min_id: 0}), do: s
 
   @impl true
   def pop(s = %{dets: dets, min_id: min_id}) do
