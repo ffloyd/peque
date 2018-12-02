@@ -3,7 +3,7 @@ defmodule Peque.WAL do
 
   alias Peque.Queue
 
-  defstruct [:queue, log: :queue.new]
+  defstruct [:queue, log: :queue.new()]
 
   @type t :: %__MODULE__{queue: Queue.t(), log: :queue.queue(entry())}
   @type entry ::
@@ -23,7 +23,7 @@ defmodule Peque.WAL do
       |> Queue.sync()
       |> elem(1)
 
-    %{wal | queue: updated_queue, log: :queue.new}
+    %{wal | queue: updated_queue, log: :queue.new()}
   end
 
   @spec write(entry(), Queue.t()) :: Queue.t()
