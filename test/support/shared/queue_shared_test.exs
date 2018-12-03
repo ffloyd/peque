@@ -120,6 +120,35 @@ defmodule Peque.QueueSharedTest do
           assert :error == Q.set_next_ack_id(q, 10)
         end
       end
+
+      describe "init/2, get/1, ack/1" do
+        setup :__queue_setup
+
+        test "empty dump on empty queue", %{q: q} do
+          dump = {[], %{}, 1}
+          {:ok, q} = Q.init(q, dump)
+
+          assert :empty = Q.get(q)
+        end
+
+        test "dump with data on empty queue", %{q: q} do
+          dump = {["msg1", "msg2"], %{10 => "msg0"}, 11}
+
+          {:ok, q} = Q.init(q, dump)
+
+          assert {:ok, q, 11, "msg1"} = Q.get(q)
+          assert {:ok, q, 12, "msg2"} = Q.get(q)
+          assert :empty = Q.get(q)
+
+          assert {:ok, q, "msg0"} = Q.ack(q, 10)
+        end
+
+        test "init when non-empty queue", %{q: q} do
+          {:ok, q} = Q.add(q, "msg")
+
+          assert :error = Q.init(q, {[], %{}, 1})
+        end
+      end
     end
   end
 end

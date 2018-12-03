@@ -25,6 +25,34 @@ defmodule Peque.PersistentQueue do
 
   alias Peque.StorageClient
 
+  def init(pq, dump) do
+    if empty?(pq) do
+      {:ok,
+       pq
+       |> init_queue(dump)
+       |> init_storage(dump)}
+    else
+      :error
+    end
+  end
+
+  defp init_queue(pq = %{queue_mod: queue_mod, queue: queue}, dump) do
+    {:ok, queue} = queue_mod.init(queue, dump)
+    %{pq | queue: queue}
+  end
+
+  defp init_storage(pq = %{storage_pid: pid}, {queue_list, ack_map, next_ack_id}) do
+    Enum.each(queue_list, &StorageClient.append(pid, &1))
+
+    Enum.each(ack_map, fn {ack_id, msg} ->
+      StorageClient.add_ack(pid, ack_id, msg)
+    end)
+
+    StorageClient.set_next_ack_id(pid, next_ack_id)
+
+    pq
+  end
+
   def add(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid}, message) do
     {:ok, queue} = queue_mod.add(queue, message)
 

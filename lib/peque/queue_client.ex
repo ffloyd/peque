@@ -16,6 +16,13 @@ defmodule Peque.QueueClient do
 
   use Peque.Queue
 
+  def init(pid, dump) do
+    case GenServer.call(pid, {:init, dump}) do
+      :ok -> {:ok, pid}
+      :error -> :error
+    end
+  end
+
   def add(pid, message) do
     :ok = GenServer.call(pid, {:add, message})
 

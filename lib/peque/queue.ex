@@ -49,6 +49,13 @@ defmodule Peque.Queue do
   end
 
   @doc """
+  Init empty queue from `t:Peque.Storage.dump/0`.
+  
+  Returns `:error` if queue is not empty. Otherwise - `{:ok, queue}`.
+  """
+  @callback init(t(), Peque.Storage.dump()) :: {:ok, t()} | :error
+
+  @doc """
   Add message to queue.
 
   Returns `{:ok, queue}`.

@@ -31,6 +31,13 @@ defmodule Peque.QueueServer do
     {:ok, get_queue.()}
   end
 
+  def handle_call({:init, dump}, _from, {mod, queue}) do
+    case mod.init(queue, dump) do
+      {:ok, queue} -> {:reply, :ok, {mod, queue}}
+      :error -> {:reply, :error, {mod, queue}}
+    end
+  end
+
   def handle_call({:add, message}, _from, {mod, queue}) do
     {:ok, queue} = mod.add(queue, message)
 

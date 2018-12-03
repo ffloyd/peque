@@ -24,6 +24,19 @@ defmodule Peque.FastQueue do
           next_ack_id: Queue.ack_id()
         }
 
+  def init(state, {queue_list, ack_map, next_ack_id}) do
+    if empty?(state) do
+      {:ok,
+      %__MODULE__{
+        queue: :queue.from_list(queue_list),
+        active: ack_map,
+        next_ack_id: next_ack_id
+      }}
+    else
+      :error
+    end
+  end
+
   def add(state = %{queue: q}, message) do
     {:ok, %{state | queue: :queue.in(message, q)}}
   end
