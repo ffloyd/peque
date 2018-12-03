@@ -13,6 +13,9 @@ defmodule Peque.Storage do
   @doc "Pop message from queue."
   @callback pop(t()) :: t()
 
+  @doc "Return first message in queue."
+  @callback first(t()) :: {:ok, Queue.message()} | :empty
+
   @doc "Add ack waiter."
   @callback add_ack(t(), Queue.ack_id(), Queue.message()) :: t()
 

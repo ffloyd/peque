@@ -1,20 +1,9 @@
 defmodule Peque.QueueClientTest do
   use ExUnit.Case
 
-  setup do
-    start_supervised!(%{
-      id: Peque.QueueServer,
-      start:
-        {GenServer, :start_link,
-         [
-           Peque.QueueServer,
-           fn -> {Peque.FastQueue, %Peque.FastQueue{}} end,
-           [name: Peque.QueueServer]
-         ]}
-    })
+  import Support.Shared
 
-    :ok
+  behaves_like_queue Peque.QueueClient do
+    start_supervised!({Peque.QueueServer, fn -> {Peque.FastQueue, %Peque.FastQueue{}} end})
   end
-
-  use Peque.QueueSharedTest, module: Peque.QueueClient, queue: Peque.QueueServer
 end

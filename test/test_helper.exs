@@ -1,3 +1,6 @@
-Code.require_file("#{__DIR__}/peque/queue_shared_test.exs")
+support_path = Path.expand("support", __DIR__)
+
+Code.require_file("helpers.exs", support_path)
+Code.require_file("shared.exs", support_path)
 
 ExUnit.start()

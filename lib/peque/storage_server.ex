@@ -5,7 +5,14 @@ defmodule Peque.StorageServer do
 
   use GenServer
 
-  @spec init((() -> {atom(), Peque.Storage.t()})) :: {:ok, {atom(), Peque.Storage.t()}}
+  @type init_fun :: (() -> {atom(), Peque.Storage.t()})
+
+  @spec start_link(init_fun) :: GenServer.on_start()
+  def start_link(init_fun) do
+    GenServer.start_link(__MODULE__, init_fun)
+  end
+
+  @spec init(init_fun) :: {:ok, {atom(), Peque.Storage.t()}}
   def init(init_fun) do
     {:ok, init_fun.()}
   end
