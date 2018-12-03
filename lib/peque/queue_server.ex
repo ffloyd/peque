@@ -17,9 +17,9 @@ defmodule Peque.QueueServer do
 
   use GenServer
 
-  @type init_fun :: (() -> {atom(), Queue.t()})
-
   alias Peque.Queue
+
+  @type init_fun :: (() -> {atom(), Queue.t()})
 
   @spec start_link(init_fun) :: GenServer.on_start()
   def start_link(init_fun) do

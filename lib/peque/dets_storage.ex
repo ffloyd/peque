@@ -104,6 +104,23 @@ defmodule Peque.DETSStorage do
     :ok
   end
 
+  def dump(s = %{dets: dets}) do
+    queue =
+      dets
+      # :ets.fun2ms fn msg = {id, _} when is_integer(id) -> msg end
+      |> :dets.select([{{:"$1", :_}, [is_integer: :"$1"], [:"$_"]}])
+      |> Enum.sort()
+      |> Enum.map(&elem(&1, 1))
+
+    ack_waiters =
+      dets
+      # :ets.fun2ms fn {{id, :ack}, msg} -> {id, msg} end
+      |> :dets.select([{{{:"$1", :ack}, :"$2"}, [], [{{:"$1", :"$2"}}]}])
+      |> Map.new()
+
+    {queue, ack_waiters, next_ack_id(s)}
+  end
+
   @spec all_ids(:dets.tab_name()) :: [pos_integer()]
   defp all_ids(dets) do
     # matcher = :ets.fun2ms fn {x, _} when is_integer(x) -> x end

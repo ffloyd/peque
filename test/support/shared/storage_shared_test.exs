@@ -43,7 +43,7 @@ defmodule Peque.StorageSharedTest do
         end
       end
 
-      describe "add_ack/2, del_ack/2, get_ack/2" do
+      describe "add_ack/3, del_ack/2, get_ack/2" do
         setup :__storage_setup
 
         test "add entry", %{s: s} do
@@ -75,6 +75,25 @@ defmodule Peque.StorageSharedTest do
 
         test "on empty storage", %{s: s} do
           assert :ok = S.close(s)
+        end
+      end
+
+      describe "dump/1, append/2, add_ack/3, set_next_ack_id/2" do
+        setup :__storage_setup
+
+        test "when empty", %{s: s} do
+          assert {[], %{}, 1} == S.dump(s)
+        end
+
+        test "when not empty", %{s: s} do
+          s =
+            s
+            |> S.append("msg1")
+            |> S.append("msg2")
+            |> S.add_ack(10, "msg0")
+            |> S.set_next_ack_id(11)
+
+          assert {["msg1", "msg2"], %{10 => "msg0"}, 11} == S.dump(s)
         end
       end
     end

@@ -6,6 +6,8 @@ defmodule Peque.Storage do
   alias Peque.Queue
 
   @type t :: any()
+  @type dump ::
+          {[Queue.message()], %{optional(Queue.ack_id()) => Queue.message()}, Queue.ack_id()}
 
   @doc "Append one message to queue."
   @callback append(t(), Queue.message()) :: t()
@@ -36,4 +38,7 @@ defmodule Peque.Storage do
 
   @doc "Close storage. Storage should not be used after closing."
   @callback close(t()) :: :ok
+
+  @doc "Dump storage content to structure."
+  @callback dump(t()) :: dump()
 end

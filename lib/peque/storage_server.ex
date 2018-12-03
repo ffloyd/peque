@@ -65,6 +65,10 @@ defmodule Peque.StorageServer do
     {:reply, :ok, {mod, mod.close(storage)}, :hibernate}
   end
 
+  def handle_call(:dump, _from, {mod, storage}) do
+    {:reply, mod.dump(storage), {mod, storage}}
+  end
+
   def terminate(_reason, {mod, storage}) do
     mod.close(storage)
   end

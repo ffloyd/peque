@@ -18,9 +18,9 @@ append_pop_sync = fn mod, s ->
   end
 end
 
-IO.puts "-------------------------------------------"
-IO.puts "-  append all messages, pop all and sync  -"
-IO.puts "-------------------------------------------"
+IO.puts("-------------------------------------------")
+IO.puts("-  append all messages, pop all and sync  -")
+IO.puts("-------------------------------------------")
 
 dets_storage = H.dets_storage(H.dets!())
 dets_server = H.storage_server!(dets_storage, Peque.DETSStorage)
@@ -28,8 +28,7 @@ dets_server = H.storage_server!(dets_storage, Peque.DETSStorage)
 Benchee.run(
   %{
     "Peque.DETSStorage" => append_pop_sync.(Peque.DETSStorage, dets_storage),
-    "Peque.DETSStorage (behind GenServer)" =>
-      append_pop_sync.(Peque.StorageClient, dets_server)
+    "Peque.DETSStorage (behind GenServer)" => append_pop_sync.(Peque.StorageClient, dets_server)
   },
   inputs: %{
     "10 messages" => H.message_gen(10),
