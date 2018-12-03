@@ -17,9 +17,11 @@ defmodule H do
 
   def queue_server!(queue, mod) do
     {:ok, pid} =
-      Peque.QueueServer.start_link(fn ->
-        {mod, queue}
-      end)
+      Peque.QueueServer.start_link(
+        init_fun: fn ->
+          {mod, queue}
+        end
+      )
 
     pid
   end
@@ -31,7 +33,7 @@ defmodule H do
   end
 
   def dets! do
-    {:ok, dets} = :dets.open_file(Peque.DETS, file: dets_file())
+    {:ok, dets} = :dets.open_file(Peque.Benchmark.DETS, file: dets_file())
     dets
   end
 
@@ -41,9 +43,11 @@ defmodule H do
 
   def storage_server!(storage, mod) do
     {:ok, pid} =
-      Peque.StorageServer.start_link(fn ->
-        {mod, storage}
-      end)
+      Peque.StorageServer.start_link(
+        init_fun: fn ->
+          {mod, storage}
+        end
+      )
 
     pid
   end

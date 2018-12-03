@@ -19,11 +19,17 @@ defmodule Peque.QueueServer do
 
   alias Peque.Queue
 
+  @type options :: [option]
+  @type option :: {:name, GenServer.name()} | {:init_fun, init_fun()}
+
   @type init_fun :: (() -> {atom(), Queue.t()})
 
-  @spec start_link(init_fun) :: GenServer.on_start()
-  def start_link(init_fun) do
-    GenServer.start_link(__MODULE__, init_fun)
+  @spec start_link(options()) :: GenServer.on_start()
+  def start_link(opts) do
+    name = Keyword.get(opts, :name)
+    init_fun = Keyword.get(opts, :init_fun)
+
+    GenServer.start_link(__MODULE__, init_fun, name: name)
   end
 
   @spec init(init_fun) :: {:ok, Queue.t()}
@@ -86,6 +92,12 @@ defmodule Peque.QueueServer do
       {:ok, queue} -> {:reply, :ok, {mod, queue}}
       :error -> {:reply, :error, {mod, queue}}
     end
+  end
+
+  def handle_call(:clear, _from, {mod, queue}) do
+    {:ok, queue} = mod.clear(queue)
+
+    {:reply, :ok, {mod, queue}}
   end
 
   def terminate(_reason, {mod, queue}) do

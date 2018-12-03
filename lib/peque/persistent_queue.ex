@@ -113,4 +113,11 @@ defmodule Peque.PersistentQueue do
         :error
     end
   end
+
+  def clear(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid}) do
+    StorageClient.clear(pid)
+    {:ok, queue} = queue_mod.clear(queue)
+
+    {:ok, %{pq | queue: queue}}
+  end
 end

@@ -13,11 +13,16 @@ defmodule Peque.StorageServer do
 
   use GenServer
 
+  @type options :: [option]
+  @type option :: {:name, GenServer.name()} | {:init_fun, init_fun()}
   @type init_fun :: (() -> {atom(), Peque.Storage.t()})
 
-  @spec start_link(init_fun) :: GenServer.on_start()
-  def start_link(init_fun) do
-    GenServer.start_link(__MODULE__, init_fun)
+  @spec start_link(options()) :: GenServer.on_start()
+  def start_link(opts) do
+    name = Keyword.get(opts, :name)
+    init_fun = Keyword.get(opts, :init_fun)
+
+    GenServer.start_link(__MODULE__, init_fun, name: name)
   end
 
   @spec init(init_fun) :: {:ok, {atom(), Peque.Storage.t()}}
@@ -43,6 +48,10 @@ defmodule Peque.StorageServer do
 
   def handle_cast({:set_next_ack_id, ack_id}, {mod, storage}) do
     {:noreply, {mod, mod.set_next_ack_id(storage, ack_id)}}
+  end
+
+  def handle_cast(:clear, {mod, storage}) do
+    {:noreply, {mod, mod.clear(storage)}}
   end
 
   def handle_call(:next_ack_id, _from, {mod, storage}) do

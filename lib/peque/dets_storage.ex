@@ -121,6 +121,12 @@ defmodule Peque.DETSStorage do
     {queue, ack_waiters, next_ack_id(s)}
   end
 
+  def clear(%{dets: dets}) do
+    :ok = :dets.delete_all_objects(dets)
+
+    new(dets)
+  end
+
   @spec all_ids(:dets.tab_name()) :: [pos_integer()]
   defp all_ids(dets) do
     # matcher = :ets.fun2ms fn {x, _} when is_integer(x) -> x end

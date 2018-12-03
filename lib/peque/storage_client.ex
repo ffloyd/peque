@@ -54,4 +54,9 @@ defmodule Peque.StorageClient do
   def dump(pid) do
     GenServer.call(pid, :dump)
   end
+
+  def clear(pid) do
+    :ok = GenServer.cast(pid, :clear)
+    pid
+  end
 end

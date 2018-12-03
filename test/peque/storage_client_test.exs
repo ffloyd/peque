@@ -8,7 +8,8 @@ defmodule Peque.StorageClientTest do
     dets = make_dets!(Peque.DETSStorage.DETS, "storage")
 
     start_supervised!(
-      {Peque.StorageServer, fn -> {Peque.DETSStorage, Peque.DETSStorage.new(dets)} end}
+      {Peque.StorageServer,
+       [init_fun: fn -> {Peque.DETSStorage, Peque.DETSStorage.new(dets)} end]}
     )
   end
 end

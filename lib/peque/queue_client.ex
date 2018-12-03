@@ -70,4 +70,10 @@ defmodule Peque.QueueClient do
       :error -> :error
     end
   end
+
+  def clear(pid) do
+    :ok = GenServer.call(pid, :clear)
+
+    {:ok, pid}
+  end
 end

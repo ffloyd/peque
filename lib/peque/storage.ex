@@ -41,4 +41,7 @@ defmodule Peque.Storage do
 
   @doc "Dump storage content to structure."
   @callback dump(t()) :: dump()
+
+  @doc "Clear all storage content."
+  @callback clear(t()) :: t()
 end

@@ -50,7 +50,7 @@ defmodule Peque.Queue do
 
   @doc """
   Init empty queue from `t:Peque.Storage.dump/0`.
-  
+
   Returns `:error` if queue is not empty. Otherwise - `{:ok, queue}`.
   """
   @callback init(t(), Peque.Storage.dump()) :: {:ok, t()} | :error
@@ -120,4 +120,9 @@ defmodule Peque.Queue do
   Otherwise returns `{:ok, queue}`.
   """
   @callback set_next_ack_id(t(), ack_id()) :: {:ok, t()} | :error
+
+  @doc """
+  Resets queue to empty state.
+  """
+  @callback clear(t()) :: {:ok, t()}
 end

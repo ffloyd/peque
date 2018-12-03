@@ -96,6 +96,21 @@ defmodule Peque.StorageSharedTest do
           assert {["msg1", "msg2"], %{10 => "msg0"}, 11} == S.dump(s)
         end
       end
+
+      describe "clear/1, append/2, first/1, add_ack/3, get_ack/2" do
+        setup :__storage_setup
+
+        test "clears", %{s: s} do
+          s =
+            s
+            |> S.append("msg1")
+            |> S.add_ack(10, "msg0")
+            |> S.clear()
+
+          assert :empty = S.first(s)
+          assert :not_found = S.get_ack(s, 10)
+        end
+      end
     end
   end
 end

@@ -149,6 +149,20 @@ defmodule Peque.QueueSharedTest do
           assert :error = Q.init(q, {[], %{}, 1})
         end
       end
+
+      describe "clear/1, add/2, get/1, ack/1" do
+        setup :__queue_setup
+
+        test "clears", %{q: q} do
+          {:ok, q} = Q.add(q, "msg1")
+          {:ok, q} = Q.add(q, "msg2")
+          {:ok, q, ack_id, _} = Q.get(q)
+
+          assert {:ok, q} = Q.clear(q)
+          assert :empty = Q.get(q)
+          assert :not_found = Q.ack(q, ack_id)
+        end
+      end
     end
   end
 end

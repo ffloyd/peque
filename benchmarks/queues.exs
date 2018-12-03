@@ -26,6 +26,14 @@ add_get_ack = fn mod, q ->
   end
 end
 
+peque_add_get_ack = fn messages ->
+  Enum.each(messages, &Peque.add/1)
+
+  messages
+  |> Enum.map(fn _ -> elem(Peque.get(), 1) end)
+  |> Enum.map(&Peque.ack/1)
+end
+
 IO.puts("-------------------------------------------")
 IO.puts("-  add all messages, pop all and ack all  -")
 IO.puts("-------------------------------------------")
@@ -45,6 +53,7 @@ persistent_server = H.queue_server!(persistent_queue, Peque.PersistentQueue)
 
 Benchee.run(
   %{
+    "Peque" => peque_add_get_ack,
     "FastQueue" => add_get_ack.(Peque.FastQueue, H.fast_queue!()),
     "FastQueue (behind GenServer)" => add_get_ack.(Peque.QueueClient, fast_server),
     "PersistentQueue" => add_get_ack.(Peque.PersistentQueue, persistent_queue),

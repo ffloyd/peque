@@ -27,11 +27,11 @@ defmodule Peque.FastQueue do
   def init(state, {queue_list, ack_map, next_ack_id}) do
     if empty?(state) do
       {:ok,
-      %__MODULE__{
-        queue: :queue.from_list(queue_list),
-        active: ack_map,
-        next_ack_id: next_ack_id
-      }}
+       %__MODULE__{
+         queue: :queue.from_list(queue_list),
+         active: ack_map,
+         next_ack_id: next_ack_id
+       }}
     else
       :error
     end
@@ -83,5 +83,9 @@ defmodule Peque.FastQueue do
     else
       :error
     end
+  end
+
+  def clear(_) do
+    {:ok, %__MODULE__{}}
   end
 end

@@ -10,9 +10,11 @@ defmodule Peque.PersistentQueueTest do
     pid =
       start_supervised!(
         {Peque.StorageServer,
-         fn ->
-           {Peque.DETSStorage, Peque.DETSStorage.new(dets)}
-         end}
+         [
+           init_fun: fn ->
+             {Peque.DETSStorage, Peque.DETSStorage.new(dets)}
+           end
+         ]}
       )
 
     %Peque.PersistentQueue{

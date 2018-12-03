@@ -4,6 +4,8 @@ defmodule Peque.QueueClientTest do
   import Support.Shared
 
   behaves_like_queue Peque.QueueClient do
-    start_supervised!({Peque.QueueServer, fn -> {Peque.FastQueue, %Peque.FastQueue{}} end})
+    start_supervised!(
+      {Peque.QueueServer, [init_fun: fn -> {Peque.FastQueue, %Peque.FastQueue{}} end]}
+    )
   end
 end
