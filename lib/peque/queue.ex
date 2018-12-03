@@ -24,6 +24,27 @@ defmodule Peque.Queue do
   @typedoc "Reference which should be finalized via `ack/2` or `reject/2`"
   @type ack_id :: pos_integer()
 
+  defmacro __using__(_opts) do
+    quote location: :keep do
+      @behaviour Peque.Queue
+
+      def reject(q, ack_id) do
+        case ack(q, ack_id) do
+          {:ok, q, message} ->
+            {:ok, q} = add(q, message)
+            {:ok, q, message}
+
+          :not_found -> :not_found
+        end
+      end
+
+      def sync(q), do: {:ok, q}
+      def close(_), do: :ok
+
+      defoverridable [reject: 2, sync: 1, close: 1]
+    end
+  end
+
   @doc """
   Add message to queue.
 
@@ -39,24 +60,24 @@ defmodule Peque.Queue do
 
   `ack_id` is not identifier of the message. It identifies particular `get/1` call in a context of `queue`.
   """
-  @callback get(t()) :: {:ok, t(), ack_id(), message()} | {:empty, t()}
+  @callback get(t()) :: {:ok, t(), ack_id(), message()} | :empty
 
   @doc """
   Finalize message by `ack_id`.
   After this operation message completly removed from queue.
 
-  Returns `{:ok, queue}` if unfinalized message with corresponding `ack_id` found.
+  Returns `{:ok, queue, message}` if unfinalized message with corresponding `ack_id` found.
   Otherwise returns `{:not_found, queue}`.
   """
-  @callback ack(t(), ack_id()) :: {:ok, t()} | {:not_found, t()}
+  @callback ack(t(), ack_id()) :: {:ok, t(), message()} | :not_found
 
   @doc """
   Finalize message by `ack_id` and add it to `queue`.
 
-  Returns `{:ok, queue}` if unfinalized message with corresponding `ack_id` found.
+  Returns `{:ok, queue, message}` if unfinalized message with corresponding `ack_id` found.
   Otherwise returns `{:not_found, queue}`.
   """
-  @callback reject(t(), ack_id()) :: {:ok, t()} | {:not_found, t()}
+  @callback reject(t(), ack_id()) :: {:ok, t(), message()} | :not_found
 
   @doc """
   Sync queue data.

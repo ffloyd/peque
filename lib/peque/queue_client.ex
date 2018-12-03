@@ -16,7 +16,7 @@ defmodule Peque.QueueClient do
       {:ok, _, ack_id, message} = Peque.Queue.get(Peque.QueueServer)
   """
 
-  @behaviour Peque.Queue
+  use Peque.Queue
 
   def add(pid, message) do
     :ok = GenServer.call(pid, {:add, message})
@@ -27,21 +27,21 @@ defmodule Peque.QueueClient do
   def get(pid) do
     case GenServer.call(pid, :get) do
       {:ok, ack_id, message} -> {:ok, pid, ack_id, message}
-      :empty -> {:empty, pid}
+      :empty -> :empty
     end
   end
 
   def ack(pid, ack_id) do
     case GenServer.call(pid, {:ack, ack_id}) do
-      :ok -> {:ok, pid}
-      :not_found -> {:not_found, pid}
+      {:ok, message} -> {:ok, pid, message}
+      :not_found -> :not_found
     end
   end
 
   def reject(pid, ack_id) do
     case GenServer.call(pid, {:reject, ack_id}) do
-      :ok -> {:ok, pid}
-      :not_found -> {:not_found, pid}
+      {:ok, message} -> {:ok, pid, message}
+      :not_found -> :not_found
     end
   end
 

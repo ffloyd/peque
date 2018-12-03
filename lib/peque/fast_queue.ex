@@ -16,7 +16,7 @@ defmodule Peque.FastQueue do
 
   defstruct queue: :queue.new(), active: %{}, next_ack_id: 1
 
-  @behaviour Peque.Queue
+  use Peque.Queue
 
   @type t :: %__MODULE__{
           queue: :queue.queue(Queue.message()),
@@ -31,7 +31,7 @@ defmodule Peque.FastQueue do
   def get(state = %{queue: q, active: active, next_ack_id: ack_id}) do
     case :queue.out(q) do
       {:empty, _} ->
-        {:empty, state}
+        :empty
 
       {{:value, message}, next_q} ->
         {
@@ -50,36 +50,16 @@ defmodule Peque.FastQueue do
 
   def ack(state = %{active: active}, ack_id) do
     case Map.fetch(active, ack_id) do
-      {:ok, _} ->
-        {
-          :ok,
-          %{state | active: Map.delete(active, ack_id)}
-        }
-
-      :error ->
-        {:not_found, state}
-    end
-  end
-
-  def reject(state = %{queue: q, active: active}, ack_id) do
-    case Map.fetch(active, ack_id) do
       {:ok, message} ->
         {
           :ok,
-          %{state | queue: :queue.in(message, q), active: Map.delete(active, ack_id)}
+          %{state | active: Map.delete(active, ack_id)},
+          message
         }
 
       :error ->
-        {:not_found, state}
+        :not_found
     end
-  end
-
-  def sync(state) do
-    {:ok, state}
-  end
-
-  def close(_state) do
-    :ok
   end
 
   def empty?(%{queue: q, active: active}), do: :queue.is_empty(q) && Enum.empty?(active)

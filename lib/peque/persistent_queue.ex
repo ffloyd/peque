@@ -5,7 +5,7 @@ defmodule Peque.PersistentQueue do
   Combines non-persistent `Peque.Queue` with `Peque.StorageServer` to provide persistance.
   """
 
-  @behaviour Peque.Queue
+  use Peque.Queue
 
   @enforce_keys [:queue_mod, :queue, :storage_pid]
   defstruct [:queue_mod, :queue, :storage_pid]
@@ -28,31 +28,19 @@ defmodule Peque.PersistentQueue do
 
         {:ok, %{pq | queue: queue}, ack_id, message}
 
-      {:empty, _} ->
-        {:empty, pq}
+      :empty ->
+        :empty
     end
   end
 
   def ack(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid}, ack_id) do
     case queue_mod.ack(queue, ack_id) do
-      {:ok, queue} ->
+      {:ok, queue, message} ->
         StorageClient.del_ack(pid, ack_id)
-        {:ok, %{pq | queue: queue}}
+        {:ok, %{pq | queue: queue}, message}
 
-      {:not_found, _} ->
-        {:not_found, pq}
-    end
-  end
-
-  def reject(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid}, ack_id) do
-    case queue_mod.reject(queue, ack_id) do
-      {:ok, queue} ->
-        StorageClient.del_ack(pid, ack_id)
-        # TODO: bug here
-        {:ok, %{pq | queue: queue}}
-
-      {:not_found, _} ->
-        {:not_found, pq}
+      :not_found ->
+        :not_found
     end
   end
 

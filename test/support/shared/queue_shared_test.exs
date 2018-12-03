@@ -1,6 +1,6 @@
 defmodule Peque.QueueSharedTest do
   defmacro __using__(mod: mod, do: expression) do
-    quote do
+    quote location: :keep do
       defp __queue_setup(_context) do
         queue = unquote(expression)
 
@@ -21,7 +21,7 @@ defmodule Peque.QueueSharedTest do
         end
 
         test "get on empty queue", %{q: q} do
-          assert {:empty, q} = Q.get(q)
+          assert :empty == Q.get(q)
         end
       end
 
@@ -32,8 +32,8 @@ defmodule Peque.QueueSharedTest do
           assert {:ok, q} = Q.add(q, "msg")
           assert {:ok, q, ack_id = 1, "msg"} = Q.get(q)
 
-          assert {:ok, q} = Q.ack(q, ack_id)
-          assert {:empty, _} = Q.get(q)
+          assert {:ok, q, "msg"} = Q.ack(q, ack_id)
+          assert :empty = Q.get(q)
         end
       end
 
@@ -44,7 +44,7 @@ defmodule Peque.QueueSharedTest do
           assert {:ok, q} = Q.add(q, "msg")
           assert {:ok, q, ack_id = 1, "msg"} = Q.get(q)
 
-          assert {:ok, q} = Q.reject(q, ack_id)
+          assert {:ok, q, "msg"} = Q.reject(q, ack_id)
 
           assert {:ok, _, 2, "msg"} = Q.get(q)
         end

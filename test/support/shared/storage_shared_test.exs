@@ -1,6 +1,6 @@
 defmodule Peque.StorageSharedTest do
   defmacro __using__(mod: mod, do: expression) do
-    quote do
+    quote location: :keep do
       alias unquote(mod), as: S
 
       defp __storage_setup(_context) do

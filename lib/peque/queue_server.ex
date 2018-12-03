@@ -42,21 +42,21 @@ defmodule Peque.QueueServer do
   def handle_call(:get, _from, {mod, queue}) do
     case mod.get(queue) do
       {:ok, queue, ack_id, message} -> {:reply, {:ok, ack_id, message}, {mod, queue}}
-      {:empty, queue} -> {:reply, :empty, {mod, queue}}
+      :empty -> {:reply, :empty, {mod, queue}}
     end
   end
 
   def handle_call({:ack, ack_id}, _from, {mod, queue}) do
     case mod.ack(queue, ack_id) do
-      {:ok, queue} -> {:reply, :ok, {mod, queue}}
-      {:not_found, queue} -> {:reply, :not_found, {mod, queue}}
+      {:ok, queue, message} -> {:reply, {:ok, message}, {mod, queue}}
+      :not_found -> {:reply, :not_found, {mod, queue}}
     end
   end
 
   def handle_call({:reject, ack_id}, _from, {mod, queue}) do
     case mod.reject(queue, ack_id) do
-      {:ok, queue} -> {:reply, :ok, {mod, queue}}
-      {:not_found, queue} -> {:reply, :not_found, {mod, queue}}
+      {:ok, queue, message} -> {:reply, {:ok, message}, {mod, queue}}
+      :not_found -> {:reply, :not_found, {mod, queue}}
     end
   end
 
