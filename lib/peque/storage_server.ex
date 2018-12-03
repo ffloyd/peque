@@ -1,6 +1,14 @@
 defmodule Peque.StorageServer do
   @moduledoc """
-  `GenServer` wrapper arond `Peque.Storage` implementations.
+  `GenServer` wrapper for `Peque.Storage` implementations.
+
+  ## Examples
+
+  Server for `Peque.DETSStorage`:
+
+      {:ok, pid} = Peque.StorageServer.start_link fn ->
+                     {Peque.DETSStorage, Peque.DETSStorage.new(...)}
+                   end
   """
 
   use GenServer
@@ -39,6 +47,14 @@ defmodule Peque.StorageServer do
 
   def handle_call(:next_ack_id, _from, {mod, storage}) do
     {:reply, mod.next_ack_id(storage), {mod, storage}}
+  end
+
+  def handle_call(:first, _from, {mod, storage}) do
+    {:reply, mod.first(storage), {mod, storage}}
+  end
+
+  def handle_call({:get_ack, ack_id}, _from, {mod, storage}) do
+    {:reply, mod.get_ack(storage, ack_id), {mod, storage}}
   end
 
   def handle_call(:sync, _from, {mod, storage}) do

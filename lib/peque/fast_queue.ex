@@ -1,12 +1,12 @@
 defmodule Peque.FastQueue do
   @moduledoc """
-  Fast in-memory `Peque.Queue` protocol implementation.
+  Fast in-memory `Peque.Queue` behaviour implementation.
 
-  It uses Erlang's `:queue` for queueing and `Map` as storage for removed, but non-acked messages.
+  It uses Erlang's `:queue.new/0` for queueing and `Map` as storage for removed, but non-acked messages.
 
   ## Examples:
 
-  New queue:
+  Initialization:
 
       iex> %Peque.FastQueue{}
       %Peque.FastQueue{active: %{}, next_ack_id: 1, queue: {[], []}}

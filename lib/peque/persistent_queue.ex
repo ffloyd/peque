@@ -3,6 +3,19 @@ defmodule Peque.PersistentQueue do
   Persistent `Peque.Queue` implementation.
 
   Combines non-persistent `Peque.Queue` with `Peque.StorageServer` to provide persistance.
+
+  ## Examples
+
+  Initialization:
+
+      internal_queue = %Peque.FastQueue{}
+      {:ok, storage_server} = Peque.StorageServer.start_link(...) 
+
+      queue = %Peque.PersistentQueue(
+                queue_mod: Peque.FastQueue,
+                queue: internal_queue,
+                storage_pid: storage_server
+              )
   """
 
   use Peque.Queue

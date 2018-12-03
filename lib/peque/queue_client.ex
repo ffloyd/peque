@@ -6,11 +6,9 @@ defmodule Peque.QueueClient do
 
   Add and get message:
 
-      {:ok, pid} = GenServer.start_link(Peque.QueueServer,
-                                        fn ->
-                                          {Peque.FastQueue, %Peque.FastQueue{}}
-                                        end,
-                                        name: Peque.QueueServer)
+      {:ok, pid} = Peque.QueueServer.start_link(fn ->
+                     {Peque.FastQueue, %Peque.FastQueue{}}
+                   end
 
       {:ok, _} = Peque.Queue.add(pid, "message")
       {:ok, _, ack_id, message} = Peque.Queue.get(Peque.QueueServer)

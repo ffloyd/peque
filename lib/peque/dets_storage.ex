@@ -1,6 +1,11 @@
 defmodule Peque.DETSStorage do
   @moduledoc """
   Simple DETS-based implementation of `Peque.Storage`.
+
+  It's very simple storage implementation.
+  All functions relies directly on `:dets` and no custom buffering performed.
+
+  Use `new/1` for initializing.
   """
 
   @enforce_keys [:dets]
@@ -15,6 +20,13 @@ defmodule Peque.DETSStorage do
 
   @behaviour Peque.Storage
 
+  @doc """
+  Initializes storage.
+
+  `dets` must be an reference of opened table returned from `:dets.open_file/2`.
+
+  For new storage initialization merely use empty table.
+  """
   @spec new(:dets.tab_name()) :: t()
   def new(dets) do
     {min_id, max_id} =
@@ -38,49 +50,55 @@ defmodule Peque.DETSStorage do
     %__MODULE__{dets: dets, min_id: min_id, max_id: max_id, next_ack_id: next_ack_id}
   end
 
-  @impl true
   def append(s = %{dets: dets, max_id: max_id}, message) do
     :ok = :dets.insert(dets, {max_id + 1, message})
 
     %{s | max_id: max_id + 1}
   end
 
-  @impl true
   def pop(s = %{dets: dets, min_id: min_id}) do
     :ok = :dets.delete(dets, min_id)
 
     %{s | min_id: min_id + 1}
   end
 
-  @impl true
+  def first(%{dets: dets, min_id: min_id}) do
+    case :dets.lookup(dets, min_id) do
+      [{^min_id, message}] -> {:ok, message}
+      _ -> :empty
+    end
+  end
+
   def add_ack(s = %{dets: dets}, ack_id, message) do
     :ok = :dets.insert(dets, {{ack_id, :ack}, message})
     s
   end
 
-  @impl true
+  def get_ack(%{dets: dets}, ack_id) do
+    case :dets.lookup(dets, {ack_id, :ack}) do
+      [{{^ack_id, :ack}, message}] -> {:ok, message}
+      _ -> :not_found
+    end
+  end
+
   def del_ack(s = %{dets: dets}, ack_id) do
     :ok = :dets.delete(dets, {ack_id, :ack})
     s
   end
 
-  @impl true
   def next_ack_id(%{next_ack_id: ack_id}), do: ack_id
 
-  @impl true
   def set_next_ack_id(s = %{dets: dets}, next_ack_id) do
     :ok = :dets.insert(dets, {:next_ack_id, next_ack_id})
 
     %{s | next_ack_id: next_ack_id}
   end
 
-  @impl true
   def sync(s) do
     :dets.sync(s.dets)
     s
   end
 
-  @impl true
   def close(%{dets: dets}) do
     :dets.close(dets)
     :ok

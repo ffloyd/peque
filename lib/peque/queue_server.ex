@@ -10,11 +10,9 @@ defmodule Peque.QueueServer do
 
   Server for `Peque.FastQueue`:
 
-      {:ok, pid} = GenServer.start_link(Peque.QueueServer,
-                                        fn ->
-                                          {Peque.FastQueue, %Peque.FastQueue{}}
-                                        end,
-                                        name: Peque.FastQueueServer)
+      {:ok, pid} = Peque.QueueServer.start_link fn ->
+                     {Peque.FastQueue, %Peque.FastQueue{}}
+                   end
   """
 
   use GenServer

@@ -22,6 +22,9 @@ defmodule Peque.Storage do
   @doc "Remove ack waiter."
   @callback del_ack(t(), Queue.ack_id()) :: t()
 
+  @doc "Get a message behind ack_id."
+  @callback get_ack(t(), Queue.ack_id()) :: {:ok, Queue.message()} | :not_found
+
   @doc "Get next_ack_id counter"
   @callback next_ack_id(t()) :: Queue.ack_id()
 

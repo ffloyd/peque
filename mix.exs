@@ -42,7 +42,8 @@ defmodule Peque.MixProject do
         ],
         queues: [
           Peque.FastQueue,
-          Peque.QueueClient
+          Peque.QueueClient,
+          Peque.PersistentQueue
         ],
         storages: [
           Peque.DETSStorage,

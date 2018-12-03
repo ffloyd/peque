@@ -2,6 +2,8 @@ defmodule Peque.Queue do
   @moduledoc """
   This behaviour describes what is queue.
 
+  Provides default implementations for `c:reject/2`, `c:sync/1`, `c:close/1`.
+
   ## Examples
 
   Adding messages:
@@ -34,14 +36,15 @@ defmodule Peque.Queue do
             {:ok, q} = add(q, message)
             {:ok, q, message}
 
-          :not_found -> :not_found
+          :not_found ->
+            :not_found
         end
       end
 
       def sync(q), do: {:ok, q}
       def close(_), do: :ok
 
-      defoverridable [reject: 2, sync: 1, close: 1]
+      defoverridable reject: 2, sync: 1, close: 1
     end
   end
 

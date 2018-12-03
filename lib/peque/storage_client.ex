@@ -15,9 +15,17 @@ defmodule Peque.StorageClient do
     pid
   end
 
+  def first(pid) do
+    GenServer.call(pid, :first)
+  end
+
   def add_ack(pid, ack_id, message) do
     :ok = GenServer.cast(pid, {:add_ack, ack_id, message})
     pid
+  end
+
+  def get_ack(pid, ack_id) do
+    GenServer.call(pid, {:get_ack, ack_id})
   end
 
   def del_ack(pid, ack_id) do
