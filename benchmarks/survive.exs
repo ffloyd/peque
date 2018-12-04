@@ -1,12 +1,14 @@
-IO.puts("-------------------------------------------------------")
-IO.puts("-  10M strings, 10 min non-stop, 2 insane GenServers  -")
-IO.puts("-------------------------------------------------------")
+IO.puts("----------------------------------------------------------------")
+IO.puts("-  10k x 16 strings, 2 insane GenServers, 16 parallel clients  -")
+IO.puts("----------------------------------------------------------------")
 
-count = 10_000_000
+count = 10_000
+
+Peque.clear()
 
 Benchee.run(
   %{
-    "10 000 000 messages add" => fn ->
+    "10 000 messages" => fn ->
       Enum.each(1..count, fn x ->
         Peque.add("message#{x}-#{DateTime.utc_now()}")
       end)
@@ -20,6 +22,9 @@ Benchee.run(
       |> Enum.map(&Peque.ack/1)
     end
   },
-  time: 60 * 10,
-  memory_time: 10
+  time: 60,
+  memory_time: 5,
+  parallel: 16
 )
+
+Peque.clear()

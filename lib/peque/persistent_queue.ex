@@ -21,10 +21,12 @@ defmodule Peque.PersistentQueue do
   use Peque.Queue
 
   @enforce_keys [:queue_mod, :queue, :storage_pid]
-  defstruct [:queue_mod, :queue, :storage_pid]
+  defstruct [:queue_mod, :queue, :storage_pid, ops: 0]
 
   alias Peque.StorageClient
 
+  @ops_call_threshold 500
+  
   def init(pq, dump) do
     if empty?(pq) do
       {:ok,
@@ -53,32 +55,39 @@ defmodule Peque.PersistentQueue do
     pq
   end
 
-  def add(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid}, message) do
+  def add(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops}, message) do
     {:ok, queue} = queue_mod.add(queue, message)
 
     StorageClient.append(pid, message)
 
-    {:ok, %{pq | queue: queue}}
+    {:ok, %{pq | queue: queue, ops: inc_ops(ops, pid)}}
   end
 
-  def get(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid}) do
+  defp inc_ops(@ops_call_threshold, pid) do
+    StorageClient.next_ack_id(pid) # <-- handle_call
+    0
+  end
+
+  defp inc_ops(ops, _), do: ops + 1
+
+  def get(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops}) do
     case queue_mod.get(queue) do
       {:ok, queue, ack_id, message} ->
         StorageClient.pop(pid)
         StorageClient.add_ack(pid, ack_id, message)
 
-        {:ok, %{pq | queue: queue}, ack_id, message}
+        {:ok, %{pq | queue: queue, ops: inc_ops(ops, pid)}, ack_id, message}
 
       :empty ->
         :empty
     end
   end
 
-  def ack(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid}, ack_id) do
+  def ack(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops}, ack_id) do
     case queue_mod.ack(queue, ack_id) do
       {:ok, queue, message} ->
         StorageClient.del_ack(pid, ack_id)
-        {:ok, %{pq | queue: queue}, message}
+        {:ok, %{pq | queue: queue, ops: inc_ops(ops, pid)}, message}
 
       :not_found ->
         :not_found
@@ -103,21 +112,21 @@ defmodule Peque.PersistentQueue do
     queue_mod.empty?(queue)
   end
 
-  def set_next_ack_id(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid}, ack_id) do
+  def set_next_ack_id(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops}, ack_id) do
     case queue_mod.set_next_ack_id(queue, ack_id) do
       {:ok, queue} ->
         StorageClient.set_next_ack_id(pid, ack_id)
-        {:ok, %{pq | queue: queue}}
+        {:ok, %{pq | queue: queue, ops: inc_ops(ops, pid)}}
 
       :error ->
         :error
     end
   end
 
-  def clear(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid}) do
+  def clear(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops}) do
     StorageClient.clear(pid)
     {:ok, queue} = queue_mod.clear(queue)
 
-    {:ok, %{pq | queue: queue}}
+    {:ok, %{pq | queue: queue, ops: inc_ops(ops, pid)}}
   end
 end

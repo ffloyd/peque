@@ -16,7 +16,7 @@ defmodule Peque.QueueClient do
 
   use Peque.Queue
 
-  @timeout 5_000
+  @timeout 5000
 
   def init(pid, dump) do
     case GenServer.call(pid, {:init, dump}, @timeout) do
