@@ -20,21 +20,22 @@ defmodule Peque.QueueServer do
   alias Peque.Queue
 
   @type options :: [option]
-  @type option :: {:name, GenServer.name()} | {:init_fun, init_fun()}
+  @type option :: {:name, GenServer.name()} | {:queue_mod, module()} | {:queue_fn, queue_fn()}
 
-  @type init_fun :: (() -> {atom(), Queue.t()})
+  @type queue_fn :: (() -> Queue.t())
 
   @spec start_link(options()) :: GenServer.on_start()
   def start_link(opts) do
     name = Keyword.get(opts, :name)
-    init_fun = Keyword.get(opts, :init_fun)
 
-    GenServer.start_link(__MODULE__, init_fun, name: name)
+    queue_mod = Keyword.fetch!(opts, :queue_mod)
+    queue_fn = Keyword.fetch!(opts, :queue_fn)
+
+    GenServer.start_link(__MODULE__, {queue_mod, queue_fn}, name: name)
   end
 
-  @spec init(init_fun) :: {:ok, Queue.t()}
-  def init(get_queue) do
-    {:ok, get_queue.()}
+  def init({queue_mod, queue_fn}) do
+    {:ok, {queue_mod, queue_fn.()}}
   end
 
   def handle_call({:init, dump}, _from, {mod, queue}) do

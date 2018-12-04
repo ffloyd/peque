@@ -18,9 +18,8 @@ defmodule H do
   def queue_server!(queue, mod) do
     {:ok, pid} =
       Peque.QueueServer.start_link(
-        init_fun: fn ->
-          {mod, queue}
-        end
+        queue_mod: mod,
+        queue_fn: fn -> queue end
       )
 
     pid
@@ -44,9 +43,8 @@ defmodule H do
   def storage_server!(storage, mod) do
     {:ok, pid} =
       Peque.StorageServer.start_link(
-        init_fun: fn ->
-          {mod, storage}
-        end
+        storage_mod: mod,
+        storage_fn: fn -> storage end
       )
 
     pid

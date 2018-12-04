@@ -9,7 +9,7 @@ defmodule Peque.StorageClientTest do
 
     start_supervised!(
       {Peque.StorageServer,
-       [init_fun: fn -> {Peque.DETSStorage, Peque.DETSStorage.new(dets)} end]}
+       [storage_mod: Peque.DETSStorage, storage_fn: fn -> Peque.DETSStorage.new(dets) end]}
     )
   end
 end
