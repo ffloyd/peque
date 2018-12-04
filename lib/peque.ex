@@ -65,7 +65,8 @@ defmodule Peque do
 
   @spec sync() :: :ok
   def sync() do
-    QueueClient.sync(QueueServer)
+    {:ok, _} = QueueClient.sync(QueueServer)
+    :ok
   end
 
   @spec clear() :: :ok
