@@ -43,7 +43,12 @@ defmodule Peque.Application do
   end
 
   defp storage_fn do
-    {:ok, dets} = :dets.open_file(Peque.DETS, file: "peque.dets" |> String.to_charlist())
+    dets_file =
+      :peque
+      |> Application.get_env(:dets_file, "peque.dets")
+      |> String.to_charlist()
+
+    {:ok, dets} = :dets.open_file(Peque.DETS, file: dets_file)
     SDETS.new(dets)
   end
 
@@ -58,7 +63,8 @@ defmodule Peque.Application do
     %QPersistent{
       queue_mod: Peque.Queue.Fast,
       queue: internal_queue,
-      storage_pid: Peque.Storage.Worker
+      storage_pid: Peque.Storage.Worker,
+      ops_cast_limit: Application.get_env(:peque, :ops_cast_limit, 500)
     }
   end
 end
