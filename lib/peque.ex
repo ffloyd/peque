@@ -1,6 +1,8 @@
 defmodule Peque do
   @moduledoc """
-  Global persistent queue OTP Application.
+  Global persistent queue client.
+
+  Just a simple combination of `Peque.Queue.Client` and lightweight offensive api.
   """
 
   alias Peque.Queue
@@ -40,6 +42,8 @@ defmodule Peque do
   @doc """
   ACK message by `ack_id`.
 
+  After this operation message completely removed from queue.
+
   Returns `:ok` or `:not_found`.
   """
   @spec ack(Queue.ack_id()) :: :ok | :not_found
@@ -63,12 +67,18 @@ defmodule Peque do
     end
   end
 
+  @doc """
+  Sync queue data.
+  """
   @spec sync() :: :ok
   def sync do
     {:ok, _} = Worker |> Client.sync()
     :ok
   end
 
+  @doc """
+  Clear whole queue and non-ACK'ed messages.
+  """
   @spec clear() :: :ok
   def clear do
     {:ok, _} = Worker |> Client.clear()

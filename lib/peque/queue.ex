@@ -2,7 +2,7 @@ defmodule Peque.Queue do
   @moduledoc """
   This behaviour describes what is queue.
 
-  Provides default implementations for `c:reject/2`, `c:sync/1`, `c:close/1`.
+  Provides default implementations for `c:reject/2` and `c:sync/1`.
 
   ## Examples
 
@@ -18,12 +18,13 @@ defmodule Peque.Queue do
       {:ok, q} = Peque.Queue.Fast.ack(q, ack_id)
   """
 
+  @typedoc "Represents any queue realization."
   @type t :: any()
 
-  @typedoc "Any erlang term allowed to be a message"
+  @typedoc "Any erlang term allowed to be a message."
   @type message :: term()
 
-  @typedoc "Reference which should be finalized via `ack/2` or `reject/2`"
+  @typedoc "Reference for `ack/2` or `reject/2`."
   @type ack_id :: pos_integer()
 
   defmacro __using__(_opts) do
@@ -65,9 +66,7 @@ defmodule Peque.Queue do
   Get message from queue.
 
   If queue is empty returns `{:empty, queue}`.
-  Otherwise returns `{:ok, queue, ack_id, message}`.
-
-  `ack_id` is not identifier of the message. It identifies particular `get/1` call in a context of `queue`.
+  Returns `{:ok, queue, ack_id, message}` if queue is not empty.
   """
   @callback get(t()) :: {:ok, t(), ack_id(), message()} | :empty
 
@@ -75,16 +74,14 @@ defmodule Peque.Queue do
   Finalize message by `ack_id`.
   After this operation message completly removed from queue.
 
-  Returns `{:ok, queue, message}` if unfinalized message with corresponding `ack_id` found.
-  Otherwise returns `{:not_found, queue}`.
+  Returns `{:ok, queue, message}` or `{:not_found, queue}`.
   """
   @callback ack(t(), ack_id()) :: {:ok, t(), message()} | :not_found
 
   @doc """
   Finalize message by `ack_id` and add it to `queue`.
 
-  Returns `{:ok, queue, message}` if unfinalized message with corresponding `ack_id` found.
-  Otherwise returns `{:not_found, queue}`.
+  Returns `{:ok, queue, message}` or `{:not_found, queue}`.
   """
   @callback reject(t(), ack_id()) :: {:ok, t(), message()} | :not_found
 

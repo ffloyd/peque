@@ -5,7 +5,10 @@ defmodule Peque.Storage do
 
   alias Peque.Queue
 
+  @typedoc "Represents any `Peque.Storage` realization."
   @type t :: any()
+
+  @typedoc "Queue dump. Tuple with list of messages, non-acked messages map and next ack_id."
   @type dump ::
           {[Queue.message()], %{optional(Queue.ack_id()) => Queue.message()}, Queue.ack_id()}
 

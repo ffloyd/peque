@@ -6,9 +6,9 @@ defmodule Peque.Storage.Worker do
 
   Server for `Peque.Storage.DETS`:
 
-      {:ok, pid} = Peque.Storage.Worker.start_link fn ->
-                     {Peque.Storage.DETS, Peque.Storage.DETS.new(...)}
-                   end
+      alias Peque.Storage.DETS
+
+      {:ok, pid} = Peque.Storage.Worker.start_link(storage_mod: DETS, storage_fn: fn -> DETS.new(...) end)
   """
 
   use GenServer
@@ -28,6 +28,7 @@ defmodule Peque.Storage.Worker do
     GenServer.start_link(__MODULE__, {storage_mod, storage_fn}, name: name)
   end
 
+  @doc false
   def init({storage_mod, storage_fn}) do
     Process.flag(:trap_exit, true)
     {:ok, {storage_mod, storage_fn.()}}

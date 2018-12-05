@@ -4,6 +4,9 @@ defmodule Peque.Queue.Persistent do
 
   Combines non-persistent `Peque.Queue` with `Peque.Storage.Worker` to provide persistance.
 
+  `:ops_cast_limit` option defines how many "operation casts" should be sent to storage server before "ping call" will be performed.
+  This mechanism prevents messagebox overflow.
+
   ## Examples
 
   Initialization:
@@ -14,7 +17,8 @@ defmodule Peque.Queue.Persistent do
       queue = %Peque.Queue.Persistent(
                 queue_mod: Peque.Queue.Fast,
                 queue: internal_queue,
-                storage_pid: storage_server
+                storage_pid: storage_server,
+                ops_cast_limit: 1_000
               )
   """
 

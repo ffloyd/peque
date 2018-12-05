@@ -2,17 +2,15 @@ defmodule Peque.Queue.Worker do
   @moduledoc """
   `GenServer` for `Peque.Queue` implementations.
 
-  Executes `Peque.Queue.close/1` on `c:GenServer.terminate/2`.
-
-  Requires queue builder as init argument.
+  Traps exits. Executes `c:Peque.Queue.sync/1` on `c:GenServer.terminate/2`.
 
   ## Examples
 
   Server for `Peque.Queue.Fast`:
-
-      {:ok, pid} = Peque.Queue.Worker.start_link fn ->
-                     {Peque.Queue.Fast, %Peque.Queue.Fast{}}
-                   end
+       
+      alias Peque.Queue.Fast
+     
+      {:ok, pid} = Peque.Queue.Worker.start_link(queue_mod: Fast, queue_fn: fn -> %Fast{} end)
   """
 
   use GenServer
@@ -34,6 +32,7 @@ defmodule Peque.Queue.Worker do
     GenServer.start_link(__MODULE__, {queue_mod, queue_fn}, name: name)
   end
 
+  @doc false
   def init({queue_mod, queue_fn}) do
     Process.flag(:trap_exit, true)
     {:ok, {queue_mod, queue_fn.()}}
