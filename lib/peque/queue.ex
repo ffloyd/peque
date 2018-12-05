@@ -42,9 +42,8 @@ defmodule Peque.Queue do
       end
 
       def sync(q), do: {:ok, q}
-      def close(_), do: :ok
 
-      defoverridable reject: 2, sync: 1, close: 1
+      defoverridable reject: 2, sync: 1
     end
   end
 
@@ -97,15 +96,6 @@ defmodule Peque.Queue do
   Returns `{:ok, queue}`.
   """
   @callback sync(t()) :: {:ok, t()}
-
-  @doc """
-  Sync and close queue. 
-
-  After this operation queue should not be used.
-
-  Returns `:ok`.
-  """
-  @callback close(t()) :: :ok
 
   @doc """
   Returns `true` if `queue` is empty. `false` otherwise. 

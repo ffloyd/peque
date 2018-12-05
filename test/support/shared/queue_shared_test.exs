@@ -1,5 +1,6 @@
 defmodule Peque.QueueSharedTest do
   defmacro __using__(mod: mod, do: expression) do
+    # credo:disable-for-next-line
     quote location: :keep do
       defp __queue_setup(_context) do
         queue = unquote(expression)
@@ -55,14 +56,6 @@ defmodule Peque.QueueSharedTest do
 
         test "works on empty queue", %{q: q} do
           assert {:ok, _} = Q.sync(q)
-        end
-      end
-
-      describe "close/1" do
-        setup :__queue_setup
-
-        test "works on empty queue", %{q: q} do
-          assert :ok = Q.close(q)
         end
       end
 

@@ -14,7 +14,8 @@ defmodule Peque.StorageServer do
   use GenServer
 
   @type options :: [option]
-  @type option :: {:name, GenServer.name()} | {:storage_mod, module()} | {:storage_fn, storage_fn()}
+  @type option ::
+          {:name, GenServer.name()} | {:storage_mod, module()} | {:storage_fn, storage_fn()}
   @type storage_fn :: (() -> Peque.Storage.t())
 
   @spec start_link(options()) :: GenServer.on_start()
@@ -28,7 +29,12 @@ defmodule Peque.StorageServer do
   end
 
   def init({storage_mod, storage_fn}) do
+    Process.flag(:trap_exit, true)
     {:ok, {storage_mod, storage_fn.()}}
+  end
+
+  def handle_info({:EXIT, _from, reason}, state) do
+    {:stop, reason, state}
   end
 
   def handle_cast({:append, message}, {mod, storage}) do
@@ -72,7 +78,9 @@ defmodule Peque.StorageServer do
   end
 
   def handle_call(:close, _from, {mod, storage}) do
-    {:reply, :ok, {mod, mod.close(storage)}, :hibernate}
+    :ok = mod.close(storage)
+
+    {:reply, :ok, {mod, storage}, :hibernate}
   end
 
   def handle_call(:dump, _from, {mod, storage}) do

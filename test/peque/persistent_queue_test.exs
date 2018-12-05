@@ -4,24 +4,31 @@ defmodule Peque.PersistentQueueTest do
   import Support.Helpers
   import Support.Shared
 
-  behaves_like_queue Peque.PersistentQueue do
-    dets = make_dets!(Peque.DETSStorage.DETS, "storage")
+  alias Peque.FastQueue
+  alias Peque.PersistentQueue
+  alias Peque.StorageClient
+  alias Peque.StorageServer
 
-    pid =
-      start_supervised!(
-        {Peque.StorageServer,
-         [
-           storage_mod: Peque.DETSStorage,
-           storage_fn: fn ->
-             Peque.DETSStorage.new(dets)
-           end
-         ]}
+  setup_all do
+    {:ok, _} =
+      StorageServer.start_link(
+        name: StorageServer.Test,
+        storage_mod: Peque.DETSStorage,
+        storage_fn: fn ->
+          Peque.DETSStorage.new(make_dets!(StorageServer.Test, "storage"))
+        end
       )
 
-    %Peque.PersistentQueue{
-      queue_mod: Peque.FastQueue,
-      queue: %Peque.FastQueue{},
-      storage_pid: pid
+    on_exit(fn ->
+      StorageServer.Test |> StorageClient.clear()
+    end)
+  end
+
+  behaves_like_queue PersistentQueue do
+    %PersistentQueue{
+      queue_mod: FastQueue,
+      queue: %FastQueue{},
+      storage_pid: StorageServer.Test
     }
   end
 end

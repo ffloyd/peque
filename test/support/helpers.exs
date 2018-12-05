@@ -16,16 +16,10 @@ defmodule Support.Helpers do
       end
   """
 
-  alias ExUnit.Callbacks
-
   def file_for_dets(suffix) do
     file = "#{System.tmp_dir() || "."}/peque-#{suffix}.dets"
 
     File.rm(file)
-
-    Callbacks.on_exit(fn ->
-      File.rm(file)
-    end)
 
     file
   end

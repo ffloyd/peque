@@ -26,7 +26,7 @@ defmodule Peque.PersistentQueue do
   alias Peque.StorageClient
 
   @ops_call_threshold 500
-  
+
   def init(pq, dump) do
     if empty?(pq) do
       {:ok,
@@ -64,7 +64,8 @@ defmodule Peque.PersistentQueue do
   end
 
   defp inc_ops(@ops_call_threshold, pid) do
-    StorageClient.next_ack_id(pid) # <-- handle_call
+    # -- handle_call
+    StorageClient.next_ack_id(pid)
     0
   end
 
@@ -101,18 +102,14 @@ defmodule Peque.PersistentQueue do
     {:ok, %{pq | queue: queue}}
   end
 
-  def close(%{queue_mod: queue_mod, queue: queue, storage_pid: pid}) do
-    :ok = queue_mod.close(queue)
-    :ok = StorageClient.close(pid)
-
-    :ok
-  end
-
   def empty?(%{queue_mod: queue_mod, queue: queue}) do
     queue_mod.empty?(queue)
   end
 
-  def set_next_ack_id(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops}, ack_id) do
+  def set_next_ack_id(
+        pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops},
+        ack_id
+      ) do
     case queue_mod.set_next_ack_id(queue, ack_id) do
       {:ok, queue} ->
         StorageClient.set_next_ack_id(pid, ack_id)

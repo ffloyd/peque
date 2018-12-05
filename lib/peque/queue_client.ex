@@ -58,10 +58,6 @@ defmodule Peque.QueueClient do
     {:ok, pid}
   end
 
-  def close(pid) do
-    GenServer.call(pid, :close, @timeout)
-  end
-
   def empty?(pid) do
     GenServer.call(pid, :empty?, @timeout)
   end

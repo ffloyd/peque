@@ -35,6 +35,7 @@ defmodule Peque.QueueServer do
   end
 
   def init({queue_mod, queue_fn}) do
+    Process.flag(:trap_exit, true)
     {:ok, {queue_mod, queue_fn.()}}
   end
 
@@ -102,6 +103,6 @@ defmodule Peque.QueueServer do
   end
 
   def terminate(_reason, {mod, queue}) do
-    mod.close(queue)
+    mod.sync(queue)
   end
 end
