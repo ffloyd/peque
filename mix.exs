@@ -31,6 +31,7 @@ defmodule Peque.MixProject do
   defp docs() do
     [
       main: Peque,
+      extras: ["README.md"],
       groups_for_modules: [
         behaviours: [
           Peque.Queue,
