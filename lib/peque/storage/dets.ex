@@ -1,4 +1,4 @@
-defmodule Peque.DETSStorage do
+defmodule Peque.Storage.DETS do
   @moduledoc """
   Simple DETS-based implementation of `Peque.Storage`.
 

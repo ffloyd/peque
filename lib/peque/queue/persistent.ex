@@ -1,18 +1,18 @@
-defmodule Peque.PersistentQueue do
+defmodule Peque.Queue.Persistent do
   @moduledoc """
   Persistent `Peque.Queue` implementation.
 
-  Combines non-persistent `Peque.Queue` with `Peque.StorageServer` to provide persistance.
+  Combines non-persistent `Peque.Queue` with `Peque.Storage.Worker` to provide persistance.
 
   ## Examples
 
   Initialization:
 
-      internal_queue = %Peque.FastQueue{}
-      {:ok, storage_server} = Peque.StorageServer.start_link(...) 
+      internal_queue = %Peque.Queue.Fast{}
+      {:ok, storage_server} = Peque.Storage.Worker.start_link(...) 
 
-      queue = %Peque.PersistentQueue(
-                queue_mod: Peque.FastQueue,
+      queue = %Peque.Queue.Persistent(
+                queue_mod: Peque.Queue.Fast,
                 queue: internal_queue,
                 storage_pid: storage_server
               )
@@ -23,7 +23,7 @@ defmodule Peque.PersistentQueue do
   @enforce_keys [:queue_mod, :queue, :storage_pid]
   defstruct [:queue_mod, :queue, :storage_pid, ops: 0]
 
-  alias Peque.StorageClient
+  alias Peque.Storage.Client, as: SClient
 
   @ops_call_threshold 500
 
@@ -44,13 +44,13 @@ defmodule Peque.PersistentQueue do
   end
 
   defp init_storage(pq = %{storage_pid: pid}, {queue_list, ack_map, next_ack_id}) do
-    Enum.each(queue_list, &StorageClient.append(pid, &1))
+    Enum.each(queue_list, &SClient.append(pid, &1))
 
     Enum.each(ack_map, fn {ack_id, msg} ->
-      StorageClient.add_ack(pid, ack_id, msg)
+      SClient.add_ack(pid, ack_id, msg)
     end)
 
-    StorageClient.set_next_ack_id(pid, next_ack_id)
+    SClient.set_next_ack_id(pid, next_ack_id)
 
     pq
   end
@@ -58,14 +58,14 @@ defmodule Peque.PersistentQueue do
   def add(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops}, message) do
     {:ok, queue} = queue_mod.add(queue, message)
 
-    StorageClient.append(pid, message)
+    SClient.append(pid, message)
 
     {:ok, %{pq | queue: queue, ops: inc_ops(ops, pid)}}
   end
 
   defp inc_ops(@ops_call_threshold, pid) do
     # -- handle_call
-    StorageClient.next_ack_id(pid)
+    SClient.next_ack_id(pid)
     0
   end
 
@@ -74,8 +74,8 @@ defmodule Peque.PersistentQueue do
   def get(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops}) do
     case queue_mod.get(queue) do
       {:ok, queue, ack_id, message} ->
-        StorageClient.pop(pid)
-        StorageClient.add_ack(pid, ack_id, message)
+        SClient.pop(pid)
+        SClient.add_ack(pid, ack_id, message)
 
         {:ok, %{pq | queue: queue, ops: inc_ops(ops, pid)}, ack_id, message}
 
@@ -87,7 +87,7 @@ defmodule Peque.PersistentQueue do
   def ack(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops}, ack_id) do
     case queue_mod.ack(queue, ack_id) do
       {:ok, queue, message} ->
-        StorageClient.del_ack(pid, ack_id)
+        SClient.del_ack(pid, ack_id)
         {:ok, %{pq | queue: queue, ops: inc_ops(ops, pid)}, message}
 
       :not_found ->
@@ -97,7 +97,7 @@ defmodule Peque.PersistentQueue do
 
   def sync(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid}) do
     {:ok, queue} = queue_mod.sync(queue)
-    StorageClient.sync(pid)
+    SClient.sync(pid)
 
     {:ok, %{pq | queue: queue}}
   end
@@ -112,7 +112,7 @@ defmodule Peque.PersistentQueue do
       ) do
     case queue_mod.set_next_ack_id(queue, ack_id) do
       {:ok, queue} ->
-        StorageClient.set_next_ack_id(pid, ack_id)
+        SClient.set_next_ack_id(pid, ack_id)
         {:ok, %{pq | queue: queue, ops: inc_ops(ops, pid)}}
 
       :error ->
@@ -121,7 +121,7 @@ defmodule Peque.PersistentQueue do
   end
 
   def clear(pq = %{queue_mod: queue_mod, queue: queue, storage_pid: pid, ops: ops}) do
-    StorageClient.clear(pid)
+    SClient.clear(pid)
     {:ok, queue} = queue_mod.clear(queue)
 
     {:ok, %{pq | queue: queue, ops: inc_ops(ops, pid)}}

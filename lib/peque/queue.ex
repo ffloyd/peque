@@ -8,14 +8,14 @@ defmodule Peque.Queue do
 
   Adding messages:
 
-      {:ok, q} = Peque.FastQueue.add(q, "message")
-      {:ok, q} = Peque.FastQueue.add(q, any: :term)
+      {:ok, q} = Peque.Queue.Fast.add(q, "message")
+      {:ok, q} = Peque.Queue.Fast.add(q, any: :term)
       
   Success message path:
 
-      {:ok, q} = Peque.FastQueue.add(q, "message")
-      {:ok, q, ack_id, "message"} = Peque.FastQueue.get(q)
-      {:ok, q} = Peque.FastQueue.ack(q, ack_id)
+      {:ok, q} = Peque.Queue.Fast.add(q, "message")
+      {:ok, q, ack_id, "message"} = Peque.Queue.Fast.get(q)
+      {:ok, q} = Peque.Queue.Fast.ack(q, ack_id)
   """
 
   @type t :: any()

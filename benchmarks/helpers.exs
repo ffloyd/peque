@@ -4,11 +4,11 @@ defmodule H do
   end
 
   def fast_queue! do
-    %Peque.FastQueue{}
+    %Peque.Queue.Fast{}
   end
 
   def persistent_queue!(queue, mod, storage_pid) do
-    %Peque.PersistentQueue{
+    %Peque.Queue.Persistent{
       queue_mod: mod,
       queue: queue,
       storage_pid: storage_pid
@@ -17,7 +17,7 @@ defmodule H do
 
   def queue_server!(queue, mod) do
     {:ok, pid} =
-      Peque.QueueServer.start_link(
+      Peque.Queue.Worker.start_link(
         queue_mod: mod,
         queue_fn: fn -> queue end
       )
@@ -37,12 +37,12 @@ defmodule H do
   end
 
   def dets_storage(dets) do
-    Peque.DETSStorage.new(dets)
+    Peque.Storage.DETS.new(dets)
   end
 
   def storage_server!(storage, mod) do
     {:ok, pid} =
-      Peque.StorageServer.start_link(
+      Peque.Storage.Worker.start_link(
         storage_mod: mod,
         storage_fn: fn -> storage end
       )

@@ -1,13 +1,13 @@
-defmodule Peque.StorageServer do
+defmodule Peque.Storage.Worker do
   @moduledoc """
   `GenServer` wrapper for `Peque.Storage` implementations.
 
   ## Examples
 
-  Server for `Peque.DETSStorage`:
+  Server for `Peque.Storage.DETS`:
 
-      {:ok, pid} = Peque.StorageServer.start_link fn ->
-                     {Peque.DETSStorage, Peque.DETSStorage.new(...)}
+      {:ok, pid} = Peque.Storage.Worker.start_link fn ->
+                     {Peque.Storage.DETS, Peque.Storage.DETS.new(...)}
                    end
   """
 

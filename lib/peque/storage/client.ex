@@ -1,6 +1,6 @@
-defmodule Peque.StorageClient do
+defmodule Peque.Storage.Client do
   @moduledoc """
-  `Peque.Storage` implementation for `Peque.StorageServer`.
+  `Peque.Storage` implementation for `Peque.Storage.Worker`.
   """
 
   @behaviour Peque.Storage

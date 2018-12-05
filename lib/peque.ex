@@ -4,8 +4,8 @@ defmodule Peque do
   """
 
   alias Peque.Queue
-  alias Peque.QueueClient
-  alias Peque.QueueServer
+  alias Peque.Queue.Client
+  alias Peque.Queue.Worker
 
   @doc """
   Add message to global queue.
@@ -20,7 +20,7 @@ defmodule Peque do
   """
   @spec add(Queue.message()) :: :ok
   def add(message) do
-    {:ok, _} = QueueClient.add(QueueServer, message)
+    {:ok, _} = Worker |> Client.add(message)
     :ok
   end
 
@@ -31,7 +31,7 @@ defmodule Peque do
   """
   @spec get() :: {Queue.ack_id(), Queue.message()} | :empty
   def get do
-    case QueueClient.get(QueueServer) do
+    case Worker |> Client.get() do
       {:ok, _, ack_id, message} -> {ack_id, message}
       :empty -> :empty
     end
@@ -44,7 +44,7 @@ defmodule Peque do
   """
   @spec ack(Queue.ack_id()) :: :ok | :not_found
   def ack(ack_id) do
-    case QueueClient.ack(QueueServer, ack_id) do
+    case Worker |> Client.ack(ack_id) do
       {:ok, _, _} -> :ok
       :not_found -> :not_found
     end
@@ -57,7 +57,7 @@ defmodule Peque do
   """
   @spec reject(Queue.ack_id()) :: :ok | :not_found
   def reject(ack_id) do
-    case QueueClient.reject(QueueServer, ack_id) do
+    case Worker |> Client.reject(ack_id) do
       {:ok, _, _} -> :ok
       :not_found -> :not_found
     end
@@ -65,13 +65,13 @@ defmodule Peque do
 
   @spec sync() :: :ok
   def sync do
-    {:ok, _} = QueueClient.sync(QueueServer)
+    {:ok, _} = Worker |> Client.sync()
     :ok
   end
 
   @spec clear() :: :ok
   def clear do
-    {:ok, _} = QueueClient.clear(QueueServer)
+    {:ok, _} = Worker |> Client.clear()
     :ok
   end
 end

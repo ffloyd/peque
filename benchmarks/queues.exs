@@ -38,28 +38,28 @@ IO.puts("-------------------------------------------")
 IO.puts("-  add all messages, pop all and ack all  -")
 IO.puts("-------------------------------------------")
 
-fast_server = H.queue_server!(H.fast_queue!(), Peque.FastQueue)
+fast_server = H.queue_server!(H.fast_queue!(), Peque.Queue.Fast)
 
 # persistent_queue =
 #   H.persistent_queue!(
 #     H.fast_queue!(),
-#     Peque.FastQueue,
+#     Peque.Queue.Fast,
 #     H.dets!()
 #     |> H.dets_storage()
-#     |> H.storage_server!(Peque.DETSStorage)
+#     |> H.storage_server!(Peque.Storage.DETS)
 #   )
 
-# persistent_server = H.queue_server!(persistent_queue, Peque.PersistentQueue)
+# persistent_server = H.queue_server!(persistent_queue, Peque.Queue.Persistent)
 
 Peque.clear()
 
 Benchee.run(
   %{
     "Peque" => peque_add_get_ack,
-    "FastQueue" => add_get_ack.(Peque.FastQueue, H.fast_queue!()),
-    "FastQueue (behind GenServer)" => add_get_ack.(Peque.QueueClient, fast_server)
-    # "PersistentQueue" => add_get_ack.(Peque.PersistentQueue, persistent_queue),
-    # "PersistentQueue (behind GenServer)" => add_get_ack.(Peque.QueueClient, persistent_server)
+    "Queue.Fast" => add_get_ack.(Peque.Queue.Fast, H.fast_queue!()),
+    "Queue.Fast (behind GenServer)" => add_get_ack.(Peque.Queue.Client, fast_server)
+    # "Queue.Persistent" => add_get_ack.(Peque.Queue.Persistent, persistent_queue),
+    # "Queue.Persistent (behind GenServer)" => add_get_ack.(Peque.Queue.Client, persistent_server)
   },
   inputs: %{
     "10 000 messages" => H.message_gen(10_000),

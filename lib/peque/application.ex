@@ -5,11 +5,19 @@ defmodule Peque.Application do
 
   use Application
 
+  alias Peque.Queue.Fast, as: QFast
+  alias Peque.Queue.Persistent, as: QPersistent
+  alias Peque.Queue.Worker, as: QWorker
+
+  alias Peque.Storage.Client, as: SClient
+  alias Peque.Storage.DETS, as: SDETS
+  alias Peque.Storage.Worker, as: SWorker
+
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      {Peque.StorageServer, storage_opts()},
-      {Peque.QueueServer, queue_opts()}
+      {SWorker, storage_opts()},
+      {QWorker, queue_opts()}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -20,37 +28,37 @@ defmodule Peque.Application do
 
   defp storage_opts do
     [
-      name: Peque.StorageServer,
-      storage_mod: Peque.DETSStorage,
+      name: SWorker,
+      storage_mod: SDETS,
       storage_fn: &storage_fn/0
     ]
   end
 
   defp queue_opts do
     [
-      name: Peque.QueueServer,
-      queue_mod: Peque.PersistentQueue,
+      name: QWorker,
+      queue_mod: QPersistent,
       queue_fn: &queue_fn/0
     ]
   end
 
   defp storage_fn do
     {:ok, dets} = :dets.open_file(Peque.DETS, file: "peque.dets" |> String.to_charlist())
-    Peque.DETSStorage.new(dets)
+    SDETS.new(dets)
   end
 
   defp queue_fn do
-    dump = Peque.StorageClient.dump(Peque.StorageServer)
+    dump = SClient.dump(SWorker)
 
     internal_queue =
-      %Peque.FastQueue{}
-      |> Peque.FastQueue.init(dump)
+      %QFast{}
+      |> QFast.init(dump)
       |> elem(1)
 
-    %Peque.PersistentQueue{
-      queue_mod: Peque.FastQueue,
+    %QPersistent{
+      queue_mod: Peque.Queue.Fast,
       queue: internal_queue,
-      storage_pid: Peque.StorageServer
+      storage_pid: Peque.Storage.Worker
     }
   end
 end

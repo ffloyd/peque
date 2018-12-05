@@ -23,12 +23,12 @@ IO.puts("-  append all messages, pop all and sync  -")
 IO.puts("-------------------------------------------")
 
 dets_storage = H.dets_storage(H.dets!())
-dets_server = H.storage_server!(dets_storage, Peque.DETSStorage)
+dets_server = H.storage_server!(dets_storage, Peque.Storage.DETS)
 
 Benchee.run(
   %{
-    "Peque.DETSStorage" => append_pop_sync.(Peque.DETSStorage, dets_storage),
-    "Peque.DETSStorage (behind GenServer)" => append_pop_sync.(Peque.StorageClient, dets_server)
+    "Peque.Storage.DETS" => append_pop_sync.(Peque.Storage.DETS, dets_storage),
+    "Peque.Storage.DETS (behind GenServer)" => append_pop_sync.(Peque.Storage.Client, dets_server)
   },
   inputs: %{
     "10 messages" => H.message_gen(10),

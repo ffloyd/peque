@@ -1,4 +1,4 @@
-defmodule Peque.QueueServer do
+defmodule Peque.Queue.Worker do
   @moduledoc """
   `GenServer` for `Peque.Queue` implementations.
 
@@ -8,10 +8,10 @@ defmodule Peque.QueueServer do
 
   ## Examples
 
-  Server for `Peque.FastQueue`:
+  Server for `Peque.Queue.Fast`:
 
-      {:ok, pid} = Peque.QueueServer.start_link fn ->
-                     {Peque.FastQueue, %Peque.FastQueue{}}
+      {:ok, pid} = Peque.Queue.Worker.start_link fn ->
+                     {Peque.Queue.Fast, %Peque.Queue.Fast{}}
                    end
   """
 

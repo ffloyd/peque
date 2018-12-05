@@ -1,17 +1,17 @@
-defmodule Peque.QueueClient do
+defmodule Peque.Queue.Client do
   @moduledoc """
-  `Peque.Queue` implementation for `Peque.QueueServer`.
+  `Peque.Queue` implementation for `Peque.Queue.Worker`.
 
   ## Examples
 
   Add and get message:
 
-      {:ok, pid} = Peque.QueueServer.start_link(fn ->
-                     {Peque.FastQueue, %Peque.FastQueue{}}
+      {:ok, pid} = Peque.Queue.Worker.start_link(fn ->
+                     {Peque.Queue.Fast, %Peque.Queue.Fast{}}
                    end
 
       {:ok, _} = Peque.Queue.add(pid, "message")
-      {:ok, _, ack_id, message} = Peque.Queue.get(Peque.QueueServer)
+      {:ok, _, ack_id, message} = Peque.Queue.get(Peque.Queue.Worker)
   """
 
   use Peque.Queue

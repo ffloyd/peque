@@ -4,7 +4,7 @@ defmodule Support.Helpers do
 
   Examples:
 
-      defmodule Peque.PersistentQueueTest do
+      defmodule Peque.Queue.PersistentTest do
         use ExUnit.Case
         import Support.Helpers
 

@@ -1,4 +1,4 @@
-defmodule Peque.FastQueue do
+defmodule Peque.Queue.Fast do
   @moduledoc """
   Fast in-memory `Peque.Queue` behaviour implementation.
 
@@ -8,15 +8,15 @@ defmodule Peque.FastQueue do
 
   Initialization:
 
-      iex> %Peque.FastQueue{}
-      %Peque.FastQueue{active: %{}, next_ack_id: 1, queue: {[], []}}
+      iex> %Peque.Queue.Fast{}
+      %Peque.Queue.Fast{active: %{}, next_ack_id: 1, queue: {[], []}}
   """
 
   alias Peque.Queue
 
   defstruct queue: :queue.new(), active: %{}, next_ack_id: 1
 
-  use Peque.Queue
+  use Queue
 
   @type t :: %__MODULE__{
           queue: :queue.queue(Queue.message()),

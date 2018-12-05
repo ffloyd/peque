@@ -37,17 +37,17 @@ defmodule Peque.MixProject do
           Peque.Storage
         ],
         genservers: [
-          Peque.QueueServer,
-          Peque.StorageServer
+          Peque.Queue.Worker,
+          Peque.Storage.Worker
         ],
         queues: [
-          Peque.FastQueue,
-          Peque.QueueClient,
-          Peque.PersistentQueue
+          Peque.Queue.Fast,
+          Peque.Queue.Client,
+          Peque.Queue.Persistent
         ],
         storages: [
-          Peque.DETSStorage,
-          Peque.StorageClient
+          Peque.Storage.DETS,
+          Peque.Storage.Client
         ]
       ]
     ]
