@@ -61,6 +61,10 @@ defmodule Peque.Storage.Worker do
     {:noreply, {mod, mod.clear(storage)}}
   end
 
+  def handle_call(:ping, _from, state) do
+    {:reply, :pong, state}
+  end
+
   def handle_call(:next_ack_id, _from, {mod, storage}) do
     {:reply, mod.next_ack_id(storage), {mod, storage}}
   end

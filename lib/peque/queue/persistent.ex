@@ -65,7 +65,7 @@ defmodule Peque.Queue.Persistent do
 
   defp inc_ops(@ops_call_threshold, pid) do
     # -- handle_call
-    SClient.next_ack_id(pid)
+    SClient.ping(pid)
     0
   end
 

@@ -5,6 +5,11 @@ defmodule Peque.Storage.Client do
 
   @behaviour Peque.Storage
 
+  def ping(pid) do
+    :pong = GenServer.call(pid, :ping)
+    :ok
+  end
+
   def append(pid, message) do
     :ok = GenServer.cast(pid, {:append, message})
     pid
